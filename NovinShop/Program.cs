@@ -6,6 +6,9 @@ using NovinShop.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// تنظیمات محرمانه‌ی محلی (کلید TinyMCE و ...) — این فایل در گیت ثبت نمی‌شود
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<AppDbContext>(o =>

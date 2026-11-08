@@ -1,4 +1,4 @@
-## Ignore Visual Studio temporary files, build results, and user-specific files
+## Visual Studio / build output
 .vs/
 .vscode/
 .idea/
@@ -14,11 +14,20 @@ TestResults/
 *.sln.docstates
 *.DotSettings.user
 
-## SQLite temporary WAL/SHM files
+## Local secrets (TinyMCE key, etc.)
+appsettings.Local.json
+
+## SQLite database (auto-created + seeded on first run)
+*.db
 *.db-shm
 *.db-wal
 *.db-journal
 
-## OS generated files
+## User uploads (keep folders only)
+NovinShop/wwwroot/uploads/**/*
+!NovinShop/wwwroot/uploads/**/
+!NovinShop/wwwroot/uploads/**/.gitkeep
+
+## OS files
 .DS_Store
 Thumbs.db
