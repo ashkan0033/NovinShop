@@ -1,0 +1,26 @@
+@model List<Banner>
+@{ ViewData["Title"] = "بنرهای صفحه‌ی اصلی"; }
+<div class="bar"><h2>بنرهای صفحه‌ی اصلی</h2><a class="btn pri" asp-action="Create">+ بنر جدید</a></div>
+<p style="color:#667085">اگر هیچ بنر فعالی نباشد، بنر پیش‌فرض از «تنظیمات و متن‌ها» نمایش داده می‌شود. با چند بنر، اسلایدر خودکار فعال می‌شود.</p>
+<div class="card">
+    <table class="t">
+        <thead><tr><th></th><th>عنوان</th><th>لینک</th><th>ترتیب</th><th>وضعیت</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var b in Model)
+        {
+            <tr>
+                <td>@if (b.ImagePath != null) { <img class="th" src="@b.ImagePath" alt="" /> } else { <div class="th">🖼️</div> }</td>
+                <td>@b.Title</td>
+                <td dir="ltr" style="text-align:right">@b.LinkUrl</td>
+                <td>@b.SortOrder</td>
+                <td><span class="badge @(b.IsActive ? "ok" : "off")">@(b.IsActive ? "فعال" : "غیرفعال")</span></td>
+                <td class="act">
+                    <a class="btn sm" asp-action="Edit" asp-route-id="@b.Id">ویرایش</a>
+                    <form asp-action="Delete" asp-route-id="@b.Id" method="post" onsubmit="return confirm('این بنر حذف شود؟')"><button class="btn sm dan" type="submit">حذف</button></form>
+                </td>
+            </tr>
+        }
+        @if (!Model.Any()) { <tr><td colspan="6" style="text-align:center;color:#667085">بنری ثبت نشده است</td></tr> }
+        </tbody>
+    </table>
+</div>

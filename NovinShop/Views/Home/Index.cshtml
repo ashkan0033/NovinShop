@@ -1,0 +1,274 @@
+@model HomeViewModel
+@inject SiteSettings Site
+@{
+    ViewData["Title"] = Site.Get("site.name") + " | " + "خرید اینترنتی با ضمانت اصالت و ارسال سریع";
+    ViewData["Description"] = Site.Get("site.description");
+    var hasEnd = DateTime.TryParse(Site.Get("deals.ends"), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var endsAt) && endsAt > Fmt.TehranNow();
+    var dealsEndIso = hasEnd ? (endsAt.ToString("yyyy-MM-dd'T'HH:mm:ss") + "+03:30") : "";
+    var catCounts = Model.CategorySections.ToDictionary(x => x.Category.Id, x => x.TotalCount);
+}
+
+<!-- ═══ ۲. بنر اصلی تمام‌عرض (Hero Full-Bleed Slider) ═══ -->
+<section class="ns-hero-bleed" id="slider" aria-label="اسلایدر اصلی فروشگاه">
+    @if (Model.Banners.Any())
+    {
+        @foreach (var (b, i) in Model.Banners.Select((b, i) => (b, i)))
+        {
+            <div class="slide @(i == 0 ? "on" : "")" style="@(string.IsNullOrEmpty(b.ImagePath) ? "" : $"background-image:linear-gradient(90deg,#06112be6,#081c45cc),url({b.ImagePath})")">
+                <div class="wrap ns-hero-inner">
+                    <div class="ns-hero-txt">
+                        <span class="ns-hero-pill">✨ پیشنهاد ویژه امروز</span>
+                        <h1>@b.Title</h1>
+                        @if (!string.IsNullOrWhiteSpace(b.Subtitle)) { <p>@b.Subtitle</p> }
+                        <div class="ns-hero-btns">
+                            <a class="ns-hero-cta" href="@(string.IsNullOrWhiteSpace(b.LinkUrl) ? "/products" : b.LinkUrl)">
+                                <span>@(string.IsNullOrWhiteSpace(b.ButtonText) ? "خرید و مشاهده" : b.ButtonText)</span>
+                                <svg class="i"><use href="#i-left"/></svg>
+                            </a>
+                            <a class="ns-hero-ghost" href="/products?sale=true">تخفیف‌های شگفت‌انگیز</a>
+                        </div>
+                    </div>
+                    <div class="ns-hero-art" aria-hidden="true">
+                        <div class="ns-art-stage">
+                            <div class="ns-art-card ac-1"><span>📱</span><b>پرچمداران دیجیتال</b><small>تا ۳۰٪ تخفیف</small></div>
+                            <div class="ns-art-card ac-2"><span>🎧</span><b>صوتی و گیمینگ</b><small>ارسال فوری</small></div>
+                            <div class="ns-art-card ac-3"><span>🏠</span><b>لوازم هوشمند خانه</b><small>ضمانت اصالت</small></div>
+                        </div>
+                    </div>
+                    <div class="ns-hero-en" aria-hidden="true">
+                        <span>Home</span>
+                        <span>Favorites</span>
+                        <span>Now for less</span>
+                        <b>%</b>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="slide on">
+            <div class="wrap ns-hero-inner">
+                <div class="ns-hero-txt">
+                    <span class="ns-hero-pill">✨ جشنواره فروش ویژه</span>
+                    <h1>اتاق به اتاقش به دل می‌شینه</h1>
+                    <p>محبوب‌ترین‌های خانه و کالای دیجیتال با تخفیف ویژه و ارسال اکسپرس</p>
+                    <div class="ns-hero-btns">
+                        <a class="ns-hero-cta" asp-controller="Shop" asp-action="Index">
+                            <span>خرید و مشاهده</span>
+                            <svg class="i"><use href="#i-left"/></svg>
+                        </a>
+                        <a class="ns-hero-ghost" href="/products?sale=true">تخفیف‌های شگفت‌انگیز</a>
+                    </div>
+                </div>
+                <div class="ns-hero-art" aria-hidden="true">
+                    <div class="ns-art-stage">
+                        <div class="ns-art-card ac-1"><span>📱</span><b>پرچمداران دیجیتال</b><small>تا ۳۰٪ تخفیف</small></div>
+                        <div class="ns-art-card ac-2"><span>🎧</span><b>صوتی و گیمینگ</b><small>ارسال فوری</small></div>
+                        <div class="ns-art-card ac-3"><span>🏠</span><b>لوازم هوشمند خانه</b><small>ضمانت اصالت</small></div>
+                    </div>
+                </div>
+                <div class="ns-hero-en" aria-hidden="true">
+                    <span>Home</span>
+                    <span>Favorites</span>
+                    <span>Now for less</span>
+                    <b>%</b>
+                </div>
+            </div>
+        </div>
+    }
+    <button type="button" class="sl-nav prev" id="slPrev" aria-label="قبلی"><svg class="i"><use href="#i-right"/></svg></button>
+    <button type="button" class="sl-nav next" id="slNext" aria-label="بعدی"><svg class="i"><use href="#i-left"/></svg></button>
+    <div class="dots" id="dots"></div>
+</section>
+
+<!-- ═══ ۳. دسته‌بندی‌های کارتی ۶ تایی ═══ -->
+<section class="ns-cats-sec" aria-label="دسته‌بندی‌های فروشگاه">
+    <div class="ns-cats-row">
+        @foreach (var c in Model.Categories.Take(6))
+        {
+            var cnt = catCounts.TryGetValue(c.Id, out var n) ? n : 12;
+            <a class="ns-cat-card" asp-controller="Shop" asp-action="Index" asp-route-slug="@c.Slug">
+                <span class="ns-cat-pic">@(string.IsNullOrWhiteSpace(c.Icon) ? "🛍️" : c.Icon)</span>
+                <b class="ns-cat-title">@c.Name</b>
+                <small class="ns-cat-count">+@Fmt.Num(cnt) محصول</small>
+            </a>
+        }
+    </div>
+</section>
+
+<!-- ═══ ۴. بخش «تخفیف‌های شگفت‌انگیز» (باکس قرمز با تایمر ۳ ستونه و کارت‌های سفید با دکمه قرمز) ═══ -->
+@if (Model.Deals.Any())
+{
+    <section class="ns-offer-box" aria-label="تخفیف‌های شگفت‌انگیز">
+        <div class="ns-offer-side">
+            <h2>تخفیف های شگفت انگیز</h2>
+            <p>تا ۵۰٪ به مدت محدود</p>
+            <div class="cd ns-timer" data-end="@dealsEndIso">
+                <div class="ns-tbox">
+                    <span data-u="s">۵۰</span>
+                    <small>ثانیه</small>
+                </div>
+                <div class="ns-tbox">
+                    <span data-u="m">۱۱</span>
+                    <small>دقیقه</small>
+                </div>
+                <div class="ns-tbox">
+                    <span data-u="h">۰۳</span>
+                    <small>ساعت</small>
+                </div>
+            </div>
+            <a class="ns-offer-all" href="/products?sale=true">
+                <span>همه محصولات</span>
+                <svg class="i"><use href="#i-left"/></svg>
+            </a>
+        </div>
+        <div class="ns-offer-main">
+            <div class="rail ns-deal-rail">
+                @foreach (var p in Model.Deals)
+                {
+                    <partial name="_ProductCard" model="p" />
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- ═══ ۵. ردیف بنرهای تبلیغاتی ۳ تایی ═══ -->
+<section class="ns-promo-3" aria-label="بنرهای تبلیغاتی">
+    <a class="ns-p3-card p3-blue" href="/products?sale=true">
+        <div class="ns-p3-txt">
+            <span class="ns-p3-badge">۲۰٪ تخفیف اشتراک</span>
+            <h3>با اسنپ‌پی تا ۲۰۰ میلیون وام بگیر</h3>
+            <p>موبایل جدید بخر!</p>
+            <span class="ns-p3-btn">دریافت وام</span>
+        </div>
+        <div class="ns-p3-art">۲۰۰</div>
+    </a>
+
+    <a class="ns-p3-card p3-gaming" href="/category/digital">
+        <div class="ns-p3-txt">
+            <h3>از مانیتور تا گیمینگ</h3>
+            <p>انواع مانیتور و تجهیزات حرفه‌ای</p>
+            <span class="ns-p3-btn p3-btn-red">خرید</span>
+        </div>
+        <div class="ns-p3-art p3-art-neon">GAMING</div>
+    </a>
+
+    <a class="ns-p3-card p3-dark" href="/category/digital">
+        <div class="ns-p3-txt">
+            <h3>لپ تابت رو قسطی بخر</h3>
+            <p>شرایط اقساطی آسان بدون ضامن</p>
+            <span class="ns-p3-btn p3-btn-cyan">خرید</span>
+        </div>
+        <div class="ns-p3-art">💻</div>
+    </a>
+</section>
+
+<!-- ═══ ۶. بخش‌های اسلایدر محصولات (نیمه اول دسته‌بندی‌ها — ۵ کارت در دید) ═══ -->
+@foreach (var cs in Model.CategorySections.Take(2))
+{
+    <section class="ns-sec">
+        <div class="ns-sec-head">
+            <h2 class="ns-sec-title">@cs.Category.Name</h2>
+            <a class="ns-see-all" asp-controller="Shop" asp-action="Index" asp-route-slug="@cs.Category.Slug">
+                <span>دیدن همه</span>
+                <svg class="i"><use href="#i-left"/></svg>
+            </a>
+        </div>
+        <partial name="_Rail" model="cs.Products" />
+    </section>
+}
+
+<!-- ═══ ۷. بنر دوتایی تیره (مودم و تجهیزات شبکه / ساعت هوشمند) ═══ -->
+<section class="ns-promo-2" aria-label="بنرهای ویژه دوگانه">
+    <a class="ns-p2-card p2-modem" href="/category/digital">
+        <div class="ns-p2-txt">
+            <h3>اتصال برقرار است</h3>
+            <p>مودم و تجهیزات شبکه</p>
+            <span class="ns-p2-btn">خرید</span>
+        </div>
+        <div class="ns-p2-art">🛜</div>
+    </a>
+
+    <a class="ns-p2-card p2-watch" href="/category/digital">
+        <div class="ns-p2-txt">
+            <h3>جزئیات در دست توست</h3>
+            <p>انواع ساعت هوشمند</p>
+            <span class="ns-p2-btn p2-btn-orange">خرید</span>
+        </div>
+        <div class="ns-p2-art">⌚</div>
+    </a>
+</section>
+
+<!-- ═══ ۶ (ادامه). بخش‌های اسلایدر محصولات (سایر دسته‌بندی‌ها و جدیدترین‌ها — ۵ کارت در دید) ═══ -->
+@foreach (var cs in Model.CategorySections.Skip(2))
+{
+    <section class="ns-sec">
+        <div class="ns-sec-head">
+            <h2 class="ns-sec-title">@cs.Category.Name</h2>
+            <a class="ns-see-all" asp-controller="Shop" asp-action="Index" asp-route-slug="@cs.Category.Slug">
+                <span>دیدن همه</span>
+                <svg class="i"><use href="#i-left"/></svg>
+            </a>
+        </div>
+        <partial name="_Rail" model="cs.Products" />
+    </section>
+}
+
+@if (Model.BestSellers.Any())
+{
+    <section class="ns-sec">
+        <div class="ns-sec-head">
+            <h2 class="ns-sec-title">@Site.Get("home.best")</h2>
+            <a class="ns-see-all" asp-controller="Shop" asp-action="Index">
+                <span>دیدن همه</span>
+                <svg class="i"><use href="#i-left"/></svg>
+            </a>
+        </div>
+        <partial name="_Rail" model="Model.BestSellers" />
+    </section>
+}
+
+<!-- ═══ ۸. بخش «آخرین مقالات» (متصل به وبلاگ واقعی فروشگاه /blog) ═══ -->
+@if (Model.BlogPosts is { Count: > 0 })
+{
+    <section class="ns-sec ns-blog-sec" aria-label="آخرین مقالات">
+        <div class="ns-sec-head">
+            <h2 class="ns-sec-title">آخرین مقالات</h2>
+            <a class="ns-see-all" href="/blog">
+                <span>همه مقالات</span>
+                <svg class="i"><use href="#i-left"/></svg>
+            </a>
+        </div>
+        <div class="rail-wrap">
+            <button type="button" class="rail-btn prev" data-rail="prev" aria-label="قبلی"><svg class="i"><use href="#i-right"/></svg></button>
+            <div class="rail ns-blog-rail">
+                @foreach (var post in Model.BlogPosts)
+                {
+                    var (day, month) = Fmt.ShamsiDayMonth(post.CreatedAt);
+                    var bg = !string.IsNullOrEmpty(post.ImagePath)
+                        ? $"background-image:url({post.ImagePath});background-size:cover;background-position:center"
+                        : $"background:{post.Gradient}";
+                    <a class="ns-blog-card" href="/blog/@post.Slug" style="@bg">
+                        @if (string.IsNullOrEmpty(post.ImagePath))
+                        {
+                            <div class="ns-blog-art" aria-hidden="true">@post.Icon</div>
+                        }
+                        <div class="ns-blog-ov">
+                            <div class="ns-blog-date">
+                                <b>@day</b>
+                                <small>@month</small>
+                            </div>
+                            <div class="ns-blog-info">
+                                <h3>@post.Title</h3>
+                                <span>@post.Category</span>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+            <button type="button" class="rail-btn next" data-rail="next" aria-label="بعدی"><svg class="i"><use href="#i-left"/></svg></button>
+        </div>
+    </section>
+}

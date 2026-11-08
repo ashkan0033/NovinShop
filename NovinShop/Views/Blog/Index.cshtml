@@ -1,0 +1,93 @@
+@model List<BlogPost>
+@inject SiteSettings Site
+@{
+    var siteName = Site.Get("site.name");
+    var selectedCat = ViewBag.SelectedCategory as string;
+    var q = ViewBag.Q as string;
+    var categories = ViewBag.Categories as List<string> ?? new();
+    var curPage = (int)(ViewBag.Page ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var total = (int)(ViewBag.Total ?? 0);
+    ViewData["Title"] = $"مجله و وبلاگ {siteName}";
+}
+
+<nav class="crumb">
+    <a href="/">خانه</a> <span>/</span> <b>مجله و مقالات</b>
+    @if (!string.IsNullOrEmpty(selectedCat)) { <span>/</span> <b>@selectedCat</b> }
+</nav>
+
+<section class="blog-hero">
+    <div class="blog-hero-txt">
+        <span class="blog-badge">📰 مجله تخصصی @siteName</span>
+        <h1>آخرین مقالات، بررسی‌های تخصصی و راهنمای خرید</h1>
+        <p>جدیدترین اخبار دنیای تکنولوژی، مقایسه محصولات، ترفندهای کاربردی و راهنمای انتخاب هوشمندانه کالا</p>
+    </div>
+    <form class="blog-search" method="get" action="/blog">
+        @if (!string.IsNullOrEmpty(selectedCat)) { <input type="hidden" name="cat" value="@selectedCat" /> }
+        <input type="text" name="q" value="@q" placeholder="جستجو در عنوان یا متن مقالات..." />
+        <button type="submit" class="btn pri">جستجو</button>
+    </form>
+</section>
+
+<div class="blog-cats-bar">
+    <a class="blog-cat-pill @(string.IsNullOrEmpty(selectedCat) ? "on" : "")" href="/blog">همه مقالات (@Fmt.Num(total))</a>
+    @foreach (var c in categories)
+    {
+        <a class="blog-cat-pill @(selectedCat == c ? "on" : "")" href="/blog?cat=@Uri.EscapeDataString(c)">@c</a>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="box empty">مقاله‌ای با این مشخصات یافت نشد.</div>
+}
+else
+{
+    <div class="blog-grid-page">
+        @foreach (var post in Model)
+        {
+            var (day, month) = Fmt.ShamsiDayMonth(post.CreatedAt);
+            var bg = !string.IsNullOrEmpty(post.ImagePath)
+                ? $"background-image:url({post.ImagePath});background-size:cover;background-position:center"
+                : $"background:{post.Gradient}";
+            <article class="blog-post-card">
+                <a class="blog-post-thumb" href="/blog/@post.Slug" style="@bg">
+                    @if (string.IsNullOrEmpty(post.ImagePath))
+                    {
+                        <span class="blog-post-ic">@post.Icon</span>
+                    }
+                    <span class="blog-post-cat">@post.Category</span>
+                    <div class="blog-post-date">
+                        <b>@day</b>
+                        <small>@month</small>
+                    </div>
+                </a>
+                <div class="blog-post-body">
+                    <div class="blog-post-meta">
+                        <span>⏱ زمان مطالعه: @Fmt.Num(post.ReadingMinutes) دقیقه</span>
+                        <span>👁 @Fmt.Num(post.ViewCount) بازدید</span>
+                    </div>
+                    <h2><a href="/blog/@post.Slug">@post.Title</a></h2>
+                    @if (!string.IsNullOrWhiteSpace(post.Summary))
+                    {
+                        <p>@post.Summary</p>
+                    }
+                    <a class="blog-read-more" href="/blog/@post.Slug">
+                        <span>مطالعه کامل مقاله</span>
+                        <svg class="i"><use href="#i-left"/></svg>
+                    </a>
+                </div>
+            </article>
+        }
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <div class="pager">
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                <a class="btn @(i == curPage ? "pri" : "")" href="/blog?page=@i&cat=@Uri.EscapeDataString(selectedCat ?? "")&q=@Uri.EscapeDataString(q ?? "")">@Fmt.Num(i)</a>
+            }
+        </div>
+    }
+}

@@ -1,0 +1,290 @@
+@model Product
+@inject Microsoft.Extensions.Configuration.IConfiguration Config
+@{
+    var isNew = Model.Id == 0;
+    ViewData["Title"] = isNew ? "محصول جدید" : "ویرایش محصول";
+    var tinyApiKey = Config["TinyMce:ApiKey"] ?? "no-api-key";
+}
+<div class="bar"><h2>@ViewData["Title"]</h2><a class="btn" asp-action="Index">بازگشت</a></div>
+<form id="productForm" asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="form">
+    <div asp-validation-summary="ModelOnly" class="err"></div>
+
+    <div class="card">
+        <h3 class="sec">اطلاعات اصلی</h3>
+        <div class="g2">
+            <div class="fg"><label asp-for="Name">نام محصول</label><input asp-for="Name" /><span asp-validation-for="Name"></span></div>
+            <div class="fg"><label asp-for="CategoryId">دسته‌بندی</label>
+                <select asp-for="CategoryId" asp-items="(SelectList)ViewBag.CategoryList"><option value="0">انتخاب کنید...</option></select>
+                <span asp-validation-for="CategoryId"></span></div>
+        </div>
+        <div class="fg"><label asp-for="ShortDescription">توضیح کوتاه</label><textarea asp-for="ShortDescription" rows="2"></textarea><span asp-validation-for="ShortDescription"></span></div>
+        <div class="fg">
+            <label asp-for="Description">توضیحات کامل محصول</label>
+            <textarea asp-for="Description" id="Description" rows="16" style="min-height:500px"></textarea>
+            <span class="hint">می‌توانید متن، تیتر، جدول، لیست و تصویر درج کنید. تصاویر انتخاب‌شده مستقیماً روی سرور فروشگاه آپلود می‌شوند.</span>
+        </div>
+        <label class="chk"><input asp-for="IsActive" /> فعال (نمایش در سایت)</label>
+    </div>
+
+    <div class="card">
+        <h3 class="sec">قیمت فروش و وضعیت موجودی انبار</h3>
+        <div class="g2">
+            <div class="fg"><label asp-for="Price">قیمت فروش به مشتری (تومان)</label><input asp-for="Price" /><span asp-validation-for="Price"></span></div>
+            <div class="fg"><label asp-for="OldPrice">قیمت قبل از تخفیف (اختیاری)</label><input asp-for="OldPrice" /><span asp-validation-for="OldPrice"></span></div>
+        </div>
+        <div style="background:var(--card2);border:1px dashed var(--line);border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:4px">
+            <div>
+                <b>📦 موجودی فعلی در انبار: <span style="color:var(--pri)">@Fmt.Num(Model.Stock) عدد</span></b>
+                @if (Model.CostPrice > 0)
+                {
+                    <span style="margin-inline-start:14px;color:var(--muted);font-size:13px">• آخرین قیمت خرید واحد: <b>@Fmt.Toman(Model.CostPrice)</b></span>
+                }
+                <small class="hint">موجودی کالاها به‌صورت دستی در این فرم ویرایش نمی‌شود؛ ورود کالا به انبار از بخش «انبارداری» انجام می‌گیرد و با هر فروش به‌صورت خودکار کسر می‌شود.</small>
+            </div>
+            @if (!isNew)
+            {
+                <a class="btn sm" asp-area="Admin" asp-controller="Inventory" asp-action="Index" asp-route-productId="@Model.Id">➕ ثبت ورود / خروج در انبارداری</a>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="sec">🖼️ تصویر اصلی و گالری چندتصویری محصول</h3>
+        <div class="g2">
+            <div class="fg">
+                <label>تصویر اصلی (کاور محصول)</label>
+                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                {
+                    <div style="margin-bottom:8px">
+                        <img src="@Model.ImagePath" alt="" style="width:110px;height:110px;object-fit:cover;border-radius:14px;border:1px solid var(--line)" />
+                    </div>
+                }
+                <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" />
+                <span class="hint">JPG، PNG یا WebP؛ حداکثر ۲ مگابایت. انتخاب تصویر جدید، تصویر قبلی را جایگزین می‌کند.</span>
+                @Html.ValidationMessage("image", new { @class = "err" })
+            </div>
+
+            <div class="fg">
+                <label>افزودن تصاویر به گالری (امکان انتخاب چند فایل همزمان)</label>
+                <input type="file" name="galleryFiles" accept=".jpg,.jpeg,.png,.webp" multiple />
+                <span class="hint">می‌توانید چند تصویر از زوایای مختلف محصول انتخاب کنید تا در گالری و لایت‌باکس صفحه محصول نمایش داده شوند.</span>
+                @Html.ValidationMessage("galleryFiles", new { @class = "err" })
+            </div>
+        </div>
+
+        @{ var gallery = Model.GetGallery(); }
+        @if (gallery.Count > 0)
+        {
+            <div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)">
+                <label style="display:block;font-weight:700;font-size:13.5px;margin-bottom:10px">تصاویر فعلی گالری (برای حذف هر تصویر، تیک آن را بردارید):</label>
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                    @foreach (var gImg in gallery)
+                    {
+                        <label style="display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);padding:8px;border-radius:12px;cursor:pointer">
+                            <img src="@gImg" alt="" style="width:90px;height:90px;object-fit:cover;border-radius:8px" />
+                            <span style="font-size:12px;display:flex;align-items:center;gap:4px">
+                                <input type="checkbox" name="keepGallery" value="@gImg" checked style="width:16px;height:16px" /> نگه‌داشتن
+                            </span>
+                        </label>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+            <div>
+                <h3 class="sec" style="margin:0;border:0;padding:0">📋 جدول مشخصات فنی ساختاریافته</h3>
+                <small class="hint">مشخصات فنی (مانند پردازنده، جنس بدنه، گارانتی، ابعاد و...) در جدول استاندارد مشخصات فنی صفحه محصول نمایش داده می‌شوند.</small>
+            </div>
+            <button type="button" class="btn sm" id="addSpecBtn">+ افزودن ردیف مشخصه</button>
+        </div>
+
+        <div id="specsContainer" style="display:grid;gap:8px">
+            @{
+                var specs = Model.GetSpecs();
+                if (specs.Count == 0)
+                {
+                    specs = new List<ProductSpec> { new("", "") };
+                }
+            }
+            @foreach (var sp in specs)
+            {
+                <div class="spec-row" style="display:grid;grid-template-columns:1fr 1.6fr auto;gap:8px;align-items:center">
+                    <input type="text" name="specKeys" value="@sp.Key" placeholder="عنوان مشخصه (مثال: گارانتی، وزن، پردازنده)" />
+                    <input type="text" name="specValues" value="@sp.Value" placeholder="مقدار مشخصه (مثال: ۱۸ ماه شرکتی، ۲۵۰ گرم)" />
+                    <button type="button" class="btn sm dan spec-del" title="حذف ردیف">×</button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="sec">🔎 سئو</h3>
+        <div class="fg"><label asp-for="Slug">آدرس صفحه (slug)</label><input asp-for="Slug" dir="ltr" />
+            <span class="hint">خالی بگذارید تا از روی نام خودکار ساخته شود</span><span asp-validation-for="Slug"></span></div>
+        <div class="fg"><label asp-for="SeoTitle">عنوان سئو</label><input asp-for="SeoTitle" data-max="70" /><span asp-validation-for="SeoTitle"></span></div>
+        <div class="fg"><label asp-for="SeoDescription">توضیحات سئو</label><textarea asp-for="SeoDescription" rows="2" data-max="170"></textarea><span asp-validation-for="SeoDescription"></span></div>
+    </div>
+
+    <button class="btn pri" type="submit">ذخیره محصول</button>
+</form>
+
+@section Scripts {
+    <script src="https://cdn.tiny.cloud/1/@tinyApiKey/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
+    <script>
+        (function () {
+            var uploadUrl = '@Url.Action("UploadEditorImage", "Products", new { area = "Admin" })';
+            var form = document.getElementById('productForm');
+
+            function getAntiForgeryToken() {
+                var input = form.querySelector('input[name="__RequestVerificationToken"]');
+                return input ? input.value : '';
+            }
+
+            function uploadBlob(blobInfo, progress) {
+                return new Promise(function (resolve, reject) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', uploadUrl);
+                    xhr.withCredentials = true;
+
+                    xhr.upload.onprogress = function (e) {
+                        if (e.lengthComputable && typeof progress === 'function') {
+                            progress(e.loaded / e.total * 100);
+                        }
+                    };
+
+                    xhr.onload = function () {
+                        var json = null;
+                        try { json = JSON.parse(xhr.responseText); } catch (err) { }
+                        if (xhr.status < 200 || xhr.status >= 300) {
+                            reject((json && json.error) ? json.error : ('خطا در آپلود تصویر (کد ' + xhr.status + ')'));
+                            return;
+                        }
+                        if (!json || typeof json.location !== 'string') {
+                            reject('پاسخ نامعتبر از سرور دریافت شد');
+                            return;
+                        }
+                        resolve(json.location);
+                    };
+
+                    xhr.onerror = function () {
+                        reject('خطا در ارتباط با سرور هنگام آپلود تصویر');
+                    };
+
+                    var formData = new FormData();
+                    formData.append('__RequestVerificationToken', getAntiForgeryToken());
+                    formData.append('file', blobInfo.blob(), blobInfo.filename());
+                    xhr.send(formData);
+                });
+            }
+
+            function initEditor() {
+                if (typeof tinymce === 'undefined') return;
+                var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+                tinymce.init({
+                    selector: '#Description',
+                    language: 'fa',
+                    directionality: 'rtl',
+                    min_height: 500,
+                    height: 520,
+                    promotion: false,
+                    branding: false,
+                    skin: isDark ? 'oxide-dark' : 'oxide',
+                    content_css: isDark ? 'dark' : 'default',
+                    plugins: 'lists advlist link image table code fullscreen directionality autolink wordcount',
+                    menubar: 'edit view insert format table tools',
+                    toolbar: 'undo redo | blocks fontsize | bold italic underline | forecolor backcolor | alignright aligncenter alignleft alignjustify | rtl ltr | bullist numlist | link image table | code fullscreen',
+                    fontsize_formats: '12px 14px 16px 18px 20px 24px 28px 32px',
+                    block_formats: 'پاراگراف=p; تیتر ۱=h1; تیتر ۲=h2; تیتر ۳=h3; تیتر ۴=h4; نقل‌قول=blockquote; کد=pre',
+                    relative_urls: false,
+                    remove_script_host: true,
+                    convert_urls: true,
+                    automatic_uploads: true,
+                    paste_data_images: true,
+                    images_file_types: 'jpg,jpeg,png,webp,gif',
+                    file_picker_types: 'image',
+                    images_upload_handler: uploadBlob,
+                    file_picker_callback: function (cb, value, meta) {
+                        if (meta.filetype !== 'image') return;
+                        var input = document.createElement('input');
+                        input.setAttribute('type', 'file');
+                        input.setAttribute('accept', '.jpg,.jpeg,.png,.webp,.gif');
+                        input.onchange = function () {
+                            var file = this.files[0];
+                            if (!file) return;
+                            var reader = new FileReader();
+                            reader.onload = function () {
+                                var id = 'blobid' + (new Date()).getTime();
+                                var blobCache = tinymce.activeEditor.editorUpload.blobCache;
+                                var base64 = reader.result.split(',')[1];
+                                var blobInfo = blobCache.create(id, file, base64);
+                                blobCache.add(blobInfo);
+                                cb(blobInfo.blobUri(), { title: file.name });
+                            };
+                            reader.readAsDataURL(file);
+                        };
+                        input.click();
+                    },
+                    content_style:
+                        "@@font-face{font-family:Vazirmatn;src:local('Vazirmatn'),url('/fonts/Vazirmatn-Regular.woff2') format('woff2');font-weight:400}" +
+                        "@@font-face{font-family:Vazirmatn;src:local('Vazirmatn Bold'),url('/fonts/Vazirmatn-Bold.woff2') format('woff2');font-weight:700}" +
+                        "body { font-family: Vazirmatn, Tahoma, Arial, sans-serif; font-size: 14.5px; line-height: 2; direction: rtl; text-align: right; padding: 12px 16px; }" +
+                        "img { max-width: 100%; height: auto; border-radius: 12px; }" +
+                        "table { border-collapse: collapse; width: 100%; } table td, table th { border: 1px solid #cbd5e1; padding: 8px 10px; }",
+                    setup: function (editor) {
+                        editor.on('change input undo redo', function () {
+                            editor.save();
+                        });
+                    }
+                });
+            }
+
+            initEditor();
+
+            // هماهنگی با تغییر حالت روشن / تیره پنل مدیریت
+            window.addEventListener('admin-theme-change', function () {
+                if (typeof tinymce !== 'undefined' && tinymce.get('Description')) {
+                    tinymce.get('Description').save();
+                    tinymce.remove('#Description');
+                    initEditor();
+                }
+            });
+
+            // اطمینان از همگام‌سازی محتوای ادیتور با textarea قبل از ارسال فرم
+            form.addEventListener('submit', function () {
+                if (typeof tinymce !== 'undefined') {
+                    tinymce.triggerSave();
+                }
+            });
+
+            // مدیریت ردیف‌های جدول مشخصات فنی
+            var specsBox = document.getElementById('specsContainer');
+            var addSpecBtn = document.getElementById('addSpecBtn');
+            if (specsBox && addSpecBtn) {
+                addSpecBtn.addEventListener('click', function () {
+                    var row = document.createElement('div');
+                    row.className = 'spec-row';
+                    row.style.cssText = 'display:grid;grid-template-columns:1fr 1.6fr auto;gap:8px;align-items:center';
+                    row.innerHTML =
+                        '<input type="text" name="specKeys" placeholder="عنوان مشخصه (مثال: گارانتی، وزن، پردازنده)" />' +
+                        '<input type="text" name="specValues" placeholder="مقدار مشخصه (مثال: ۱۸ ماه شرکتی، ۲۵۰ گرم)" />' +
+                        '<button type="button" class="btn sm dan spec-del" title="حذف ردیف">×</button>';
+                    specsBox.appendChild(row);
+                });
+                specsBox.addEventListener('click', function (e) {
+                    var btn = e.target.closest('.spec-del');
+                    if (!btn) return;
+                    var rows = specsBox.querySelectorAll('.spec-row');
+                    if (rows.length > 1) {
+                        btn.closest('.spec-row').remove();
+                    } else {
+                        btn.closest('.spec-row').querySelectorAll('input').forEach(function (inp) { inp.value = ''; });
+                    }
+                });
+            }
+        })();
+    </script>
+}

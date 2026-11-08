@@ -1,0 +1,87 @@
+@model Order
+@{ ViewData["Title"] = $"سفارش {Model.Code} | نوین‌شاپ"; }
+<div class="crumb"><a href="/">خانه</a> <span>/</span> <b>پیگیری سفارش @Model.Code</b></div>
+<div class="box">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <h1 style="margin:0;font-size:22px">سفارش <span dir="ltr">@Model.Code</span></h1>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <a class="btn sm" href="/order/@Model.Code/invoice" target="_blank">🖨️ مشاهده و چاپ فاکتور رسمی</a>
+            <span class="st @Model.Status.Css()">@Model.Status.Label()</span>
+        </div>
+    </div>
+    <p style="color:var(--muted);margin:6px 0 12px">
+        ثبت‌شده در @Fmt.Date(Model.CreatedAt)
+        @if (!string.IsNullOrEmpty(Model.PaymentMethod))
+        {
+            <text> • روش پرداخت: <b>@OrderStatusInfo.MethodLabel(Model.PaymentMethod)</b></text>
+        }
+        @if (!string.IsNullOrEmpty(Model.PaymentRef))
+        {
+            <text> • کد پیگیری پرداخت: <b dir="ltr">@Model.PaymentRef</b></text>
+        }
+    </p>
+
+    @if (Model.Status != OrderStatus.Cancelled)
+    {
+        var lvl = Model.Status switch
+        {
+            OrderStatus.PendingPayment or OrderStatus.PendingApproval => 1,
+            OrderStatus.Paid => 2,
+            _ => 3
+        };
+        <div class="steps">
+            <div class="step done"><i>✓</i>ثبت سفارش</div>
+            <div class="step @(lvl >= 2 ? "done" : "")"><i>@(lvl >= 2 ? "✓" : "۲")</i>@(Model.Status == OrderStatus.PendingApproval ? "بررسی فیش" : "پرداخت")</div>
+            <div class="step @(lvl >= 2 ? "done" : "")"><i>@(lvl >= 2 ? "✓" : "۳")</i>آماده‌سازی</div>
+            <div class="step @(lvl >= 3 ? "done" : "")"><i>@(lvl >= 3 ? "✓" : "۴")</i>ارسال</div>
+        </div>
+    }
+
+    @if (Model.Status == OrderStatus.PendingPayment)
+    {
+        <div class="alert er">
+            پرداخت این سفارش هنوز انجام نشده است.
+            @if (!string.IsNullOrEmpty(Model.AdminNote))
+            {
+                <br /><span>علت عدم تأیید فیش قبلی: <b>@Model.AdminNote</b></span>
+            }
+            <br /><a class="btn pri" style="margin-top:8px" href="/pay/@Model.Code">ادامه پرداخت / ثبت فیش</a>
+        </div>
+    }
+    else if (Model.Status == OrderStatus.PendingApproval)
+    {
+        <div class="alert ok" style="background:#fef3c7;color:#92400e">
+            ⏳ فیش واریزی کارت به کارت شما ثبت شده و در حال بررسی توسط واحد مالی فروشگاه است.
+            @if (!string.IsNullOrEmpty(Model.ReceiptNote))
+            {
+                <br /><small>توضیحات ثبت‌شده شما: @Model.ReceiptNote</small>
+            }
+        </div>
+    }
+
+    <div style="overflow-x:auto">
+    <table class="t">
+        <thead><tr><th>محصول</th><th>قیمت واحد</th><th>تعداد</th><th>جمع</th></tr></thead>
+        <tbody>
+        @foreach (var i in Model.Items)
+        {
+            <tr><td>@i.ProductName</td><td>@Fmt.Toman(i.UnitPrice)</td><td>@Fmt.Num(i.Quantity)</td><td>@Fmt.Toman(i.Total)</td></tr>
+        }
+        </tbody>
+    </table>
+    </div>
+    <div class="sum" style="position:static;margin-top:16px">
+        <div><span>جمع کالاها</span><span>@Fmt.Toman(Model.Subtotal)</span></div>
+        @if (Model.DiscountAmount > 0)
+        {
+            <div style="color:var(--green);font-weight:700">
+                <span>تخفیف کوپن (@(string.IsNullOrEmpty(Model.CouponCode) ? "کد تخفیف" : Model.CouponCode))</span>
+                <span>− @Fmt.Toman(Model.DiscountAmount)</span>
+            </div>
+        }
+        <div><span>هزینه ارسال</span><span>@(Model.Shipping == 0 ? "رایگان" : Fmt.Toman(Model.Shipping))</span></div>
+        <div class="tot"><span>مبلغ کل</span><span>@Fmt.Toman(Model.Total)</span></div>
+    </div>
+    <h3>اطلاعات تحویل</h3>
+    <p style="line-height:2">@Model.CustomerName — <span dir="ltr">@Model.Phone</span><br />@Model.Address</p>
+</div>

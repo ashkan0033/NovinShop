@@ -1,0 +1,27 @@
+@model List<Category>
+@{ ViewData["Title"] = "دسته‌بندی‌ها"; }
+<div class="bar"><h2>دسته‌بندی‌ها</h2><a class="btn pri" asp-action="Create">+ دسته‌بندی جدید</a></div>
+<div class="card">
+    <table class="t">
+        <thead><tr><th>نام</th><th>آدرس (slug)</th><th>محصولات</th><th>ترتیب</th><th>وضعیت</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.Name</td>
+                <td dir="ltr" style="text-align:right">@c.Slug</td>
+                <td>@c.Products.Count</td>
+                <td>@c.SortOrder</td>
+                <td><span class="badge @(c.IsActive ? "ok" : "off")">@(c.IsActive ? "فعال" : "غیرفعال")</span></td>
+                <td class="act">
+                    <a class="btn sm" asp-action="Edit" asp-route-id="@c.Id">ویرایش</a>
+                    <form asp-action="Delete" asp-route-id="@c.Id" method="post" onsubmit="return confirm('این دسته‌بندی حذف شود؟')">
+                        <button class="btn sm dan" type="submit">حذف</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        @if (!Model.Any()) { <tr><td colspan="6" style="text-align:center;color:#667085">هنوز دسته‌بندی‌ای ثبت نشده است</td></tr> }
+        </tbody>
+    </table>
+</div>

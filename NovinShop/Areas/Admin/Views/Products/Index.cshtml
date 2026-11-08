@@ -1,0 +1,50 @@
+@model ProductListViewModel
+@{
+    ViewData["Title"] = "محصولات";
+    var cats = (List<Category>)ViewBag.Categories;
+    var fa = CultureInfo.GetCultureInfo("fa-IR");
+}
+<div class="bar"><h2>محصولات <small style="color:#667085;font-weight:400">(@Model.Total مورد)</small></h2><a class="btn pri" asp-action="Create">+ محصول جدید</a></div>
+
+<form method="get" class="filters">
+    <input name="q" value="@Model.Q" placeholder="جستجوی نام محصول..." />
+    <select name="categoryId">
+        <option value="">همه‌ی دسته‌بندی‌ها</option>
+        @foreach (var c in cats) { <option value="@c.Id" selected="@(Model.CategoryId == c.Id)">@c.Name</option> }
+    </select>
+    <button class="btn" type="submit">اعمال فیلتر</button>
+</form>
+
+<div class="card">
+    <table class="t">
+        <thead><tr><th></th><th>محصول</th><th>دسته</th><th>قیمت (تومان)</th><th>موجودی</th><th>وضعیت</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var p in Model.Items)
+        {
+            <tr>
+                <td style="width:58px">@if (p.ImagePath != null) { <img class="th" src="@p.ImagePath" alt="" /> } else { <div class="th">@Fmt.ProductIcon(p)</div> }</td>
+                <td><b>@p.Name</b><small class="hint" dir="ltr" style="text-align:right">@p.Slug</small></td>
+                <td>@p.Category?.Name</td>
+                <td><b>@Fmt.Num(p.Price)</b></td>
+                <td style="@(p.Stock <= 3 ? "color:#e11d48;font-weight:700" : "")">@Fmt.Num(p.Stock)</td>
+                <td><span class="badge @(p.IsActive ? "ok" : "off")">@(p.IsActive ? "فعال" : "غیرفعال")</span></td>
+                <td class="act">
+                    <a class="btn sm" asp-action="Edit" asp-route-id="@p.Id">ویرایش</a>
+                    <form asp-action="Delete" asp-route-id="@p.Id" method="post" onsubmit="return confirm('این محصول حذف شود؟')">
+                        <button class="btn sm dan" type="submit">حذف</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        @if (!Model.Items.Any()) { <tr><td colspan="7" style="text-align:center;color:#667085">محصولی پیدا نشد</td></tr> }
+        </tbody>
+    </table>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pager">
+            @if (Model.Page > 1) { <a class="btn sm" asp-action="Index" asp-route-q="@Model.Q" asp-route-categoryId="@Model.CategoryId" asp-route-page="@(Model.Page - 1)">قبلی</a> }
+            <span>صفحه @Model.Page از @Model.TotalPages</span>
+            @if (Model.Page < Model.TotalPages) { <a class="btn sm" asp-action="Index" asp-route-q="@Model.Q" asp-route-categoryId="@Model.CategoryId" asp-route-page="@(Model.Page + 1)">بعدی</a> }
+        </div>
+    }
+</div>

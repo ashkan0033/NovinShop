@@ -1,0 +1,24 @@
+## Ignore Visual Studio temporary files, build results, and user-specific files
+.vs/
+.vscode/
+.idea/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+TestResults/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+## SQLite temporary WAL/SHM files
+*.db-shm
+*.db-wal
+*.db-journal
+
+## OS generated files
+.DS_Store
+Thumbs.db

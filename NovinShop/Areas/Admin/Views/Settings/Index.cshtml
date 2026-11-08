@@ -1,0 +1,21 @@
+@inject SiteSettings Site
+@{ ViewData["Title"] = "تنظیمات و متن‌های سایت"; }
+<div class="bar"><h2>تنظیمات و متن‌های سایت</h2></div>
+<form method="post" class="form">
+    @Html.AntiForgeryToken()
+    @foreach (var g in SiteSettings.Defs.GroupBy(d => d.Group))
+    {
+        <div class="card">
+            <h3 class="sec">@g.Key</h3>
+            @foreach (var d in g)
+            {
+                <div class="fg">
+                    <label>@d.Label</label>
+                    @if (d.Multiline) { <textarea name="s[@d.Key]" rows="2">@Site.Get(d.Key)</textarea> }
+                    else { <input type="text" name="s[@d.Key]" value="@Site.Get(d.Key)" /> }
+                </div>
+            }
+        </div>
+    }
+    <button class="btn pri" type="submit">ذخیره‌ی همه</button>
+</form>

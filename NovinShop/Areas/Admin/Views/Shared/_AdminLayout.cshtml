@@ -1,0 +1,105 @@
+@inject SiteSettings Site
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
+    var siteName = Site.Get("site.name");
+    var userName = User.Identity?.Name ?? "";
+    var isAdmin = User.IsInRole(AppRoles.Admin);
+    var isEditor = User.IsInRole(AppRoles.Editor);
+    var isAccountant = User.IsInRole(AppRoles.Accountant);
+    var roleLabel = isAdmin ? "مدیر کل" : isEditor ? "کارمند کاتالوگ" : isAccountant ? "حسابدار" : "اپراتور";
+    string On(string c) => ctrl == c ? "on" : "";
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>@ViewData["Title"] - پنل مدیریت @siteName</title>
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <script>(function(){try{var t=localStorage.getItem('theme')||'light';document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+</head>
+<body>
+<partial name="_Icons" />
+<div class="shade" id="shade"></div>
+<aside class="side">
+    <a class="brand" style="padding:6px 8px 22px;background:none;box-shadow:none" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <span class="brand-mark"><svg class="i"><use href="#i-package"/></svg></span>
+        <span>@siteName<small>پنل مدیریت (@roleLabel)</small></span>
+    </a>
+    <div class="side-lbl">اصلی و مالی</div>
+    <a class="@On("Dashboard")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><svg class="i"><use href="#i-grid"/></svg> داشبورد</a>
+    @if (isAdmin || isAccountant)
+    {
+        <a class="@On("Orders")" asp-area="Admin" asp-controller="Orders" asp-action="Index"><svg class="i"><use href="#i-cart"/></svg> سفارش‌ها</a>
+        <a class="@On("Accounting")" asp-area="Admin" asp-controller="Accounting" asp-action="Index"><svg class="i"><use href="#i-card"/></svg> حسابداری و سود و زیان</a>
+        <a class="@On("Coupons")" asp-area="Admin" asp-controller="Coupons" asp-action="Index"><svg class="i"><use href="#i-flame"/></svg> کدهای تخفیف</a>
+    }
+    <a class="@On("Inventory")" asp-area="Admin" asp-controller="Inventory" asp-action="Index"><svg class="i"><use href="#i-package"/></svg> انبارداری و کاردکس</a>
+
+    @if (isAdmin || isEditor)
+    {
+        <div class="side-lbl">کاتالوگ و محتوا</div>
+        <a class="@On("Products")" asp-area="Admin" asp-controller="Products" asp-action="Index"><svg class="i"><use href="#i-package"/></svg> محصولات</a>
+        <a class="@On("Categories")" asp-area="Admin" asp-controller="Categories" asp-action="Index"><svg class="i"><use href="#i-filter"/></svg> دسته‌بندی‌ها</a>
+        <a class="@On("Reviews")" asp-area="Admin" asp-controller="Reviews" asp-action="Index"><svg class="i"><use href="#i-star"/></svg> دیدگاه‌های کاربران</a>
+        <a class="@On("Blog")" asp-area="Admin" asp-controller="Blog" asp-action="Index"><svg class="i"><use href="#i-card"/></svg> مقالات و وبلاگ</a>
+        <a class="@On("Banners")" asp-area="Admin" asp-controller="Banners" asp-action="Index"><svg class="i"><use href="#i-star"/></svg> بنرها و اسلایدر</a>
+        <a class="@On("Pages")" asp-area="Admin" asp-controller="Pages" asp-action="Index"><svg class="i"><use href="#i-card"/></svg> صفحه‌ها</a>
+        <a class="@On("Seo")" asp-area="Admin" asp-controller="Seo" asp-action="Index"><svg class="i"><use href="#i-search"/></svg> سئو و ریدایرکت‌ها</a>
+    }
+
+    @if (isAdmin)
+    {
+        <div class="side-lbl">مدیریت ارشد (ویژه مدیر کل)</div>
+        <a class="@On("Users")" asp-area="Admin" asp-controller="Users" asp-action="Index"><svg class="i"><use href="#i-shield"/></svg> مدیران و سطوح دسترسی</a>
+        <a class="@On("Gateways")" asp-area="Admin" asp-controller="Gateways" asp-action="Index"><svg class="i"><use href="#i-card"/></svg> درگاه‌ها و پرداخت</a>
+        <a class="@On("Settings")" asp-area="Admin" asp-controller="Settings" asp-action="Index"><svg class="i"><use href="#i-sun"/></svg> تنظیمات و متن‌ها</a>
+    }
+    <div class="side-foot">
+        <div class="side-card">
+            مشاهده‌ی تغییرات روی فروشگاه
+            <a href="/" target="_blank"><svg class="i"><use href="#i-home"/></svg> مشاهده‌ی سایت</a>
+        </div>
+    </div>
+</aside>
+<div style="min-width:0">
+    <header class="topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+            <button class="icon-btn menu-tg" id="menuTg" type="button" aria-label="منو"><svg class="i"><use href="#i-menu"/></svg></button>
+            <h1>@ViewData["Title"]</h1>
+        </div>
+        <div class="tb-act">
+            <button class="icon-btn" id="themeBtn" type="button" title="حالت روشن / تیره"><svg class="i ic-moon"><use href="#i-moon"/></svg><svg class="i ic-sun"><use href="#i-sun"/></svg></button>
+            <div class="user"><span>@userName</span><span class="avatar" style="display:grid">@(userName.Length > 0 ? userName[..1].ToUpperInvariant() : "A")</span></div>
+            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post"><button class="btn sm" type="submit">خروج</button></form>
+        </div>
+    </header>
+    <main>
+        @if (TempData["Ok"] is string okMsg) { <div class="alert ok">✓ @okMsg</div> }
+        @if (TempData["Err"] is string errMsg) { <div class="alert er">⚠ @errMsg</div> }
+        @RenderBody()
+    </main>
+</div>
+<script>
+    (function () {
+        var d = document, b = d.body;
+        d.getElementById('menuTg').onclick = function () { b.classList.add('side-open'); };
+        d.getElementById('shade').onclick = function () { b.classList.remove('side-open'); };
+        d.getElementById('themeBtn').onclick = function () {
+            var n = d.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            d.documentElement.setAttribute('data-theme', n); try { localStorage.setItem('theme', n); } catch (e) { }
+            window.dispatchEvent(new CustomEvent('admin-theme-change', { detail: n }));
+        };
+        d.querySelectorAll('.alert').forEach(function (a) { setTimeout(function () { a.classList.add('hide'); }, 5000); });
+        // شمارنده‌ی کاراکتر برای فیلدهای سئو (هر input/textarea با data-max)
+        d.querySelectorAll('[data-max]').forEach(function (el) {
+            var s = d.createElement('small'); s.className = 'hint'; el.after(s);
+            var u = function () { var n = el.value.length; s.textContent = n + ' / ' + el.dataset.max; s.style.color = n > el.dataset.max ? '#e11d48' : ''; };
+            el.addEventListener('input', u); u();
+        });
+    })();
+</script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,117 @@
+@model CartViewModel
+@{
+    var freeLimit = 1_000_000L;
+    var remain = Math.Max(0, freeLimit - Model.Subtotal);
+    var pct = Math.Min(100, (int)(Model.Subtotal * 100 / freeLimit));
+}
+<div class="crumb"><a href="/">خانه</a> <span>/</span> <b>سبد خرید</b></div>
+
+@if (!Model.Lines.Any())
+{
+    <div class="box empty">
+        <div style="font-size:56px;margin-bottom:8px">🛒</div>
+        <h2 style="margin:0 0 8px;color:var(--text)">سبد خرید شما خالی است!</h2>
+        <p style="margin:0 0 20px">می‌توانید برای مشاهده محصولات بیشتر به صفحات زیر بروید:</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <a class="btn pri" asp-controller="Shop" asp-action="Index">مشاهده‌ی محصولات</a>
+            <a class="btn" href="/products?sale=true">🔥 پیشنهادهای شگفت‌انگیز</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="cart-grid">
+        <div class="cart-items">
+            <div class="ship-bar box">
+                @if (remain == 0)
+                {
+                    <div class="ship-msg ok"><svg class="i"><use href="#i-truck"/></svg> تبریک! سفارش شما شامل <b>ارسال رایگان</b> می‌شود.</div>
+                }
+                else
+                {
+                    <div class="ship-msg"><svg class="i"><use href="#i-truck"/></svg> تنها <b>@Fmt.Toman(remain)</b> دیگر تا <b>ارسال رایگان</b> باقی مانده است!</div>
+                }
+                <div class="ship-prog"><i style="width:@(pct)%"></i></div>
+            </div>
+
+            <div class="box" style="padding:8px 20px">
+                @foreach (var l in Model.Lines)
+                {
+                    <div class="cart-row">
+                        <a class="cart-pic" asp-controller="Shop" asp-action="Details" asp-route-slug="@l.Product.Slug">
+                            @if (!string.IsNullOrEmpty(l.Product.ImagePath)) { <img src="@l.Product.ImagePath" alt="@l.Product.Name" /> }
+                            else { <div class="ph" style="--h:@(l.Product.Id * 47 % 360)"><span>@Fmt.ProductIcon(l.Product)</span></div> }
+                        </a>
+                        <div class="cart-info">
+                            <a class="cart-title" asp-controller="Shop" asp-action="Details" asp-route-slug="@l.Product.Slug">@l.Product.Name</a>
+                            <div class="cart-sub">
+                                <span><svg class="i"><use href="#i-shield"/></svg> گارانتی اصالت و سلامت فیزیکی</span>
+                                <span>قیمت واحد: @Fmt.Toman(l.Product.Price)</span>
+                            </div>
+                            <div class="cart-ctrl">
+                                <form asp-controller="Cart" asp-action="Update" method="post" class="qty-form">
+                                    <input type="hidden" name="id" value="@l.Product.Id" />
+                                    <div class="qty">
+                                        <button type="submit" name="qty" value="@(l.Qty - 1)" aria-label="کم کردن">−</button>
+                                        <span>@Fmt.Num(l.Qty)</span>
+                                        <button type="submit" name="qty" value="@(l.Qty + 1)" disabled="@(l.Qty >= Math.Min(l.Product.Stock, 10))" aria-label="زیاد کردن">+</button>
+                                    </div>
+                                </form>
+                                <form asp-controller="Cart" asp-action="Remove" method="post">
+                                    <input type="hidden" name="id" value="@l.Product.Id" />
+                                    <button class="icon-btn dan-btn" type="submit" title="حذف از سبد"><svg class="i"><use href="#i-trash"/></svg></button>
+                                </form>
+                                <div class="cart-line-tot"><b>@Fmt.Num(l.Total)</b> <small>تومان</small></div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <aside class="sum">
+            <h3 style="margin:0 0 12px;font-size:16px">خلاصه‌ی سبد خرید</h3>
+            <div><span>قیمت کالاها (@Fmt.Num(Model.Lines.Sum(x => x.Qty)) عدد)</span><span>@Fmt.Toman(Model.Subtotal)</span></div>
+            @if (Model.Discount > 0)
+            {
+                <div style="color:var(--green);font-weight:700">
+                    <span>سود شما از کد تخفیف (<span dir="ltr">@Model.CouponCode</span>)</span>
+                    <span>− @Fmt.Toman(Model.Discount)</span>
+                </div>
+            }
+            <div><span>هزینه‌ی ارسال</span><span class="@(Model.Shipping == 0 ? "free-txt" : "")">@(Model.Shipping == 0 ? "رایگان" : Fmt.Toman(Model.Shipping))</span></div>
+            <div class="tot"><span>مبلغ قابل پرداخت</span><span>@Fmt.Toman(Model.Total)</span></div>
+
+            <div class="coupon-box" style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)">
+                @if (!string.IsNullOrEmpty(Model.CouponCode) && Model.Discount > 0)
+                {
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;background:color-mix(in srgb,var(--green) 10%,var(--card));border:1px solid color-mix(in srgb,var(--green) 30%,var(--line));padding:10px 12px;border-radius:12px">
+                        <div style="font-size:12.5px">
+                            <b style="color:var(--green);display:block">🏷️ کد تخفیف <span dir="ltr">@Model.CouponCode</span> فعال است</b>
+                            <span style="color:var(--muted)">@Model.CouponTitle</span>
+                        </div>
+                        <form asp-controller="Cart" asp-action="RemoveCoupon" method="post" style="margin:0">
+                            <input type="hidden" name="returnUrl" value="/cart" />
+                            <button class="btn sm dan-btn" type="submit" title="حذف کد تخفیف">حذف</button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    @if (!string.IsNullOrEmpty(Model.CouponError))
+                    {
+                        <div class="err" style="margin-bottom:8px;font-size:12.5px">⚠ @Model.CouponError</div>
+                    }
+                    <form asp-controller="Cart" asp-action="ApplyCoupon" method="post" style="display:flex;gap:8px;margin:0">
+                        <input type="hidden" name="returnUrl" value="/cart" />
+                        <input type="text" name="code" value="@Model.CouponCode" dir="ltr" placeholder="کد تخفیف (مثال: WELCOME15)" style="flex:1;min-width:0;padding:9px 12px;text-transform:uppercase;font-size:13px" />
+                        <button class="btn" type="submit" style="padding:9px 14px;font-size:13px">اعمال کد</button>
+                    </form>
+                }
+            </div>
+
+            <a class="btn pri" style="width:100%;margin-top:14px;padding:13px" href="/checkout">تایید و تکمیل سفارش <svg class="i"><use href="#i-left"/></svg></a>
+            <p class="sum-note"><svg class="i"><use href="#i-shield"/></svg> کالاهای موجود در سبد شما ثبت و رزرو نشده‌اند، برای ثبت سفارش مراحل بعدی را تکمیل کنید.</p>
+        </aside>
+    </div>
+}

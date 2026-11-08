@@ -1,0 +1,6 @@
+@model List<Product>
+<div class="rail-wrap">
+    <button type="button" class="rail-btn prev" data-rail="prev" aria-label="قبلی"><svg class="i"><use href="#i-right"/></svg></button>
+    <div class="rail">@foreach (var p in Model) { <partial name="_ProductCard" model="p" /> }</div>
+    <button type="button" class="rail-btn next" data-rail="next" aria-label="بعدی"><svg class="i"><use href="#i-left"/></svg></button>
+</div>

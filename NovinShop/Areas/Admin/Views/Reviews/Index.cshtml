@@ -1,0 +1,138 @@
+@model List<ProductReview>
+@{
+    ViewData["Title"] = "مدیریت دیدگاه‌ها و نظرات کاربران";
+    var status = (string)(ViewBag.Status ?? "all");
+    var q = ViewBag.Q as string;
+    var curPage = (int)(ViewBag.Page ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalFiltered = (int)(ViewBag.TotalFiltered ?? 0);
+    var totalAll = (int)(ViewBag.TotalAll ?? 0);
+    var pendingCount = (int)(ViewBag.PendingCount ?? 0);
+    var approvedCount = (int)(ViewBag.ApprovedCount ?? 0);
+}
+<div class="bar">
+    <div>
+        <h2>💬 دیدگاه‌ها و امتیازات کاربران (@Fmt.Num(totalFiltered) مورد)</h2>
+        <small style="color:var(--muted)">بررسی، تأیید، صفحه‌بندی و ثبت پاسخ رسمی پشتیبانی به نظرات مشتریان</small>
+    </div>
+    <div class="rev-tabs-bar">
+        <a class="btn @(status == "all" ? "pri" : "")" asp-action="Index" asp-route-status="all" asp-route-q="@q">
+            همه (@Fmt.Num(totalAll))
+        </a>
+        <a class="btn @(status == "pending" ? "pri" : "")" asp-action="Index" asp-route-status="pending" asp-route-q="@q">
+            در انتظار تأیید (@Fmt.Num(pendingCount))
+        </a>
+        <a class="btn @(status == "approved" ? "pri" : "")" asp-action="Index" asp-route-status="approved" asp-route-q="@q">
+            منتشرشده (@Fmt.Num(approvedCount))
+        </a>
+    </div>
+</div>
+
+<form class="filters" method="get">
+    <input type="hidden" name="status" value="@status" />
+    <input type="text" name="q" value="@q" placeholder="جستجو در نام نویسنده، متن نظر یا نام محصول..." />
+    <button class="btn pri" type="submit">جستجو</button>
+    @if (!string.IsNullOrEmpty(q))
+    {
+        <a class="btn" asp-action="Index" asp-route-status="@status">پاک کردن</a>
+    }
+</form>
+
+@if (!Model.Any())
+{
+    <div class="card" style="text-align:center;padding:40px;color:var(--muted)">
+        هیچ دیدگاهی در این بخش یافت نشد.
+    </div>
+}
+else
+{
+    <div class="rev-admin-grid">
+        @foreach (var r in Model)
+        {
+            <div class="card rev-admin-card @(r.IsApproved ? "is-ok" : "is-wait")">
+                <div class="rev-admin-head">
+                    <div class="rev-admin-meta">
+                        <span class="staff-av">@(r.AuthorName.Length > 0 ? r.AuthorName[..1] : "ک")</span>
+                        <div>
+                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                                <b>@r.AuthorName</b>
+                                @if (r.IsBuyer) { <span class="badge ok">خریدار محصول</span> }
+                                <span class="badge @(r.IsApproved ? "ok" : "wait")">@(r.IsApproved ? "منتشرشده" : "در انتظار تأیید")</span>
+                                <span class="rev-star-badge">@Fmt.Num(r.Rating) ★</span>
+                            </div>
+                            <div style="font-size:12px;color:var(--muted);margin-top:3px">
+                                @if (r.Product is not null)
+                                {
+                                    <span>محصول: <a href="/product/@r.Product.Slug" target="_blank" style="color:var(--pri);font-weight:700">@r.Product.Name ↗</a> • </span>
+                                }
+                                <span>@Fmt.Date(r.CreatedAt)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rev-admin-actions">
+                        <form asp-action="ToggleApprove" method="post">
+                            <input type="hidden" name="id" value="@r.Id" />
+                            <input type="hidden" name="status" value="@status" />
+                            <input type="hidden" name="q" value="@q" />
+                            <input type="hidden" name="page" value="@curPage" />
+                            <button class="btn sm @(r.IsApproved ? "" : "pri")" type="submit">
+                                @(r.IsApproved ? "لغو انتشار" : "✓ تأیید و انتشار")
+                            </button>
+                        </form>
+                        <form asp-action="Delete" method="post" onsubmit="return confirm('این دیدگاه حذف شود؟')">
+                            <input type="hidden" name="id" value="@r.Id" />
+                            <input type="hidden" name="status" value="@status" />
+                            <input type="hidden" name="q" value="@q" />
+                            <input type="hidden" name="page" value="@curPage" />
+                            <button class="btn sm dan" type="submit">حذف</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="rev-admin-body">
+                    @if (!string.IsNullOrWhiteSpace(r.Title))
+                    {
+                        <div style="font-weight:700;margin-bottom:4px;font-size:14px">@r.Title</div>
+                    }
+                    <p style="margin:0;line-height:1.9">@r.Comment</p>
+                    @if (!string.IsNullOrWhiteSpace(r.Pros) || !string.IsNullOrWhiteSpace(r.Cons))
+                    {
+                        <div class="rev-pros-cons">
+                            @if (!string.IsNullOrWhiteSpace(r.Pros)) { <span style="color:var(--green)"><b>+ نقاط قوت:</b> @r.Pros</span> }
+                            @if (!string.IsNullOrWhiteSpace(r.Cons)) { <span style="color:#e11d48"><b>− نقاط ضعف:</b> @r.Cons</span> }
+                        </div>
+                    }
+                </div>
+
+                <form asp-action="Reply" method="post" class="rev-reply-form">
+                    <input type="hidden" name="id" value="@r.Id" />
+                    <input type="hidden" name="status" value="@status" />
+                    <input type="hidden" name="q" value="@q" />
+                    <input type="hidden" name="page" value="@curPage" />
+                    <input type="text" name="adminReply" value="@r.AdminReply" placeholder="ثبت یا ویرایش پاسخ رسمی پشتیبانی به این دیدگاه..." />
+                    <button class="btn sm pri" type="submit">💬 ثبت پاسخ</button>
+                </form>
+            </div>
+        }
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <div class="pager" style="margin-top:20px">
+            @if (curPage > 1)
+            {
+                <a class="btn sm" asp-action="Index" asp-route-status="@status" asp-route-q="@q" asp-route-page="@(curPage - 1)">← قبلی</a>
+            }
+            @for (int p = 1; p <= totalPages; p++)
+            {
+                <a class="btn sm @(p == curPage ? "pri" : "")" asp-action="Index" asp-route-status="@status" asp-route-q="@q" asp-route-page="@p">@Fmt.Num(p)</a>
+            }
+            @if (curPage < totalPages)
+            {
+                <a class="btn sm" asp-action="Index" asp-route-status="@status" asp-route-q="@q" asp-route-page="@(curPage + 1)">بعدی →</a>
+            }
+            <span style="font-size:12.5px;margin-right:8px">صفحه @Fmt.Num(curPage) از @Fmt.Num(totalPages)</span>
+        </div>
+    }
+}

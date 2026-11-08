@@ -1,0 +1,71 @@
+@model ShopListViewModel
+@{
+    var cats = (List<Category>)ViewBag.Categories;
+    string Req(string k) => Context.Request.Query[k].ToString();
+    Dictionary<string, string> RV(string? k = null, string? v = null)
+    {
+        var d = new Dictionary<string, string>();
+        void Add(string key, string? val) { if (!string.IsNullOrEmpty(val)) d[key] = val; }
+        Add("q", Model.Q); Add("sort", Model.Sort == "new" ? null : Model.Sort);
+        Add("min", Req("min")); Add("max", Req("max")); Add("inStock", Req("inStock")); Add("sale", Req("sale"));
+        if (k is not null) { if (string.IsNullOrEmpty(v)) d.Remove(k); else d[k] = v; }
+        return d;
+    }
+    var sorts = new[] { ("new", "جدیدترین"), ("price-asc", "ارزان‌ترین"), ("price-desc", "گران‌ترین") };
+    var prevPage = RV("page", (Model.Page - 1).ToString());
+    var nextPage = RV("page", (Model.Page + 1).ToString());
+}
+<div class="crumb"><a href="/">خانه</a> / @Model.Heading</div>
+<div class="shop">
+    <aside>
+        <details class="fdet">
+            <summary class="btn"><svg class="i"><use href="#i-filter"/></svg> فیلترها و دسته‌بندی</summary>
+            <div class="filters">
+                <form method="get" asp-controller="Shop" asp-action="Index" asp-route-slug="@Model.Category?.Slug">
+                    <input type="hidden" name="q" value="@Model.Q" />
+                    <input type="hidden" name="sort" value="@Model.Sort" />
+                    <h4>محدوده‌ی قیمت (تومان)</h4>
+                    <div class="fl-row">
+                        <input type="number" name="min" min="0" placeholder="از" value="@Req("min")" />
+                        <input type="number" name="max" min="0" placeholder="تا" value="@Req("max")" />
+                    </div>
+                    <label class="fl-chk"><input type="checkbox" name="inStock" value="true" checked="@(Req("inStock") == "true")" /> فقط کالاهای موجود</label>
+                    <label class="fl-chk"><input type="checkbox" name="sale" value="true" checked="@(Req("sale") == "true")" /> فقط پیشنهادهای ویژه</label>
+                    <button class="btn pri" style="width:100%;margin-top:6px" type="submit">اعمال فیلتر</button>
+                </form>
+                <h4>دسته‌بندی‌ها</h4>
+                <div class="fl-cats">
+                    <a class="@(Model.Category is null ? "on" : "")" asp-controller="Shop" asp-action="Index">همه‌ی محصولات</a>
+                    @foreach (var c in cats) { <a class="@(Model.Category?.Id == c.Id ? "on" : "")" asp-controller="Shop" asp-action="Index" asp-route-slug="@c.Slug"><span>@(string.IsNullOrWhiteSpace(c.Icon) ? "" : c.Icon + " ")@c.Name</span></a> }
+                </div>
+            </div>
+        </details>
+    </aside>
+    <section>
+        <div class="tools">
+            <h1 class="h" style="font-size:22px;margin:0">@Model.Heading <small style="color:var(--muted);font-weight:400;font-size:14px;margin-inline-start:10px">@Fmt.Num(Model.Total) کالا</small></h1>
+        </div>
+        <div class="sortbar">
+            <span style="color:var(--muted);font-size:13.5px">مرتب‌سازی:</span>
+            @foreach (var (val, label) in sorts)
+            {
+                var rv = RV("sort", val == "new" ? null : val);
+                <a class="@(Model.Sort == val ? "on" : "")" asp-action="Index" asp-route-slug="@Model.Category?.Slug" asp-all-route-data="rv">@label</a>
+            }
+        </div>
+
+        @if (Model.Items.Any())
+        {
+            <div class="grid">@foreach (var p in Model.Items) { <partial name="_ProductCard" model="p" /> }</div>
+            @if (Model.TotalPages > 1)
+            {
+                <div class="pager">
+                    @if (Model.Page > 1) { <a class="btn" asp-action="Index" asp-route-slug="@Model.Category?.Slug" asp-all-route-data="prevPage">قبلی</a> }
+                    <span>صفحه @Fmt.Num(Model.Page) از @Fmt.Num(Model.TotalPages)</span>
+                    @if (Model.Page < Model.TotalPages) { <a class="btn" asp-action="Index" asp-route-slug="@Model.Category?.Slug" asp-all-route-data="nextPage">بعدی</a> }
+                </div>
+            }
+        }
+        else { <div class="empty">محصولی با این فیلترها پیدا نشد 😕<br /><br /><a class="btn" asp-controller="Shop" asp-action="Index">پاک کردن فیلترها</a></div> }
+    </section>
+</div>

@@ -1,0 +1,298 @@
+@inject NovinShop.Services.CartService Cart
+@inject NovinShop.Services.SiteSettings Site
+@{
+    var (cats, footerPages) = Site.GetNav();
+    var host = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var siteName = Site.Get("site.name");
+    var title = (ViewData["Title"] as string ?? "نوین‌شاپ | فروشگاه اینترنتی").Replace("نوین‌شاپ", siteName);
+    var desc = ViewData["Description"] as string ?? Site.Get("site.description");
+    var canonical = ViewData["Canonical"] as string ?? host + Context.Request.Path.ToUriComponent();
+    var ogImage = ViewData["OgImage"] as string;
+    var robots = ViewData["Robots"] as string ?? "index,follow";
+    var orgLd = System.Text.Json.JsonSerializer.Serialize(new object[]
+    {
+        new Dictionary<string, object?>
+        {
+            ["@context"] = "https://schema.org", ["@type"] = "WebSite", ["name"] = siteName, ["url"] = host + "/",
+            ["potentialAction"] = new Dictionary<string, object?>
+            {
+                ["@type"] = "SearchAction", ["target"] = host + "/products?q={search_term_string}",
+                ["query-input"] = "required name=search_term_string"
+            }
+        },
+        new Dictionary<string, object?> { ["@context"] = "https://schema.org", ["@type"] = "Organization", ["name"] = siteName, ["url"] = host + "/" }
+    });
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title</title>
+    <meta name="description" content="@desc" />
+    <meta name="robots" content="@robots" />
+    <link rel="canonical" href="@canonical" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:site_name" content="@siteName" />
+    <meta property="og:title" content="@title" />
+    <meta property="og:description" content="@desc" />
+    <meta property="og:url" content="@canonical" />
+    @if (!string.IsNullOrEmpty(ogImage)) { <meta property="og:image" content="@(host + ogImage)" /> }
+    <script type="application/ld+json">@Html.Raw(orgLd)</script>
+    @await RenderSectionAsync("Head", required: false)
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @{
+        var rawPrimary = Site.Get("theme.primary");
+        var primary = System.Text.RegularExpressions.Regex.IsMatch(rawPrimary, "^#[0-9a-fA-F]{6}$") && rawPrimary != "#ef394e" ? rawPrimary : "#4F46E5";
+    }
+    <style>:root{--primary:@primary}</style>
+    <script>(function(){try{var t=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+</head>
+<body class="@(ViewData["BodyClass"] as string)">
+<partial name="_Icons" />
+
+<header class="hd">
+    <!-- ردیف اول هدر: لوگو (راست) | جستجوی بزرگ با دکمه مربعی بنفش | زنگ اعلان و ورود به حساب (چپ) -->
+    <div class="bar">
+        <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="منو"><svg class="i"><use href="#i-menu"/></svg></button>
+        <a href="/" class="logo" aria-label="@siteName">
+            <span class="logo-brand">
+                <span class="logo-dots"><i></i><i></i></span>
+                <b>@siteName</b>
+            </span>
+        </a>
+
+        <form class="search" method="get" asp-controller="Shop" asp-action="Index">
+            <input id="hdSearchInput" name="q" placeholder="جستجو در فروشگاه ... Ctrl+K" value="@Context.Request.Query["q"]" autocomplete="off" />
+            @if (!string.IsNullOrEmpty(Context.Request.Query["q"]))
+            {
+                <a class="search-clr" href="/products" aria-label="پاک کردن"><svg class="i"><use href="#i-x"/></svg></a>
+            }
+            <button type="submit" class="search-btn-sq" aria-label="جستجو">
+                <svg class="i"><use href="#i-search"/></svg>
+            </button>
+        </form>
+
+        <div class="hd-actions">
+            <a class="hd-bell" href="/products?sale=true" title="تخفیف‌ها و اعلان‌ها" aria-label="اعلان‌ها">
+                <svg class="i"><use href="#i-bell"/></svg>
+                <span class="bell-dot"></span>
+            </a>
+            <button class="icon-btn" id="themeBtn" type="button" aria-label="تغییر حالت روشن/تیره" title="حالت روشن / تیره">
+                <svg class="i ic-moon"><use href="#i-moon"/></svg>
+                <svg class="i ic-sun"><use href="#i-sun"/></svg>
+            </button>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a class="hd-user-btn" asp-area="Admin" asp-controller="Dashboard" asp-action="Index" title="پنل مدیریت">
+                    <span class="hd-avatar"><svg class="i"><use href="#i-user"/></svg></span>
+                    <span>پنل مدیریت</span>
+                    <svg class="i hd-arr"><use href="#i-down"/></svg>
+                </a>
+            }
+            else
+            {
+                <a class="hd-user-btn" href="/Account/Login" title="ورود به حساب">
+                    <span class="hd-avatar"><svg class="i"><use href="#i-user"/></svg></span>
+                    <span>ورود به حساب</span>
+                    <svg class="i hd-arr"><use href="#i-down"/></svg>
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="shade" id="navShade"></div>
+
+    <!-- ردیف دوم هدر: دسته‌بندی‌ها + لینک‌های منو (راست) | انتخاب آدرس + دکمه سبز سبد خرید (چپ) -->
+    <nav class="nav">
+        <div class="nav-head">
+            <span class="logo"><b>@siteName</b></span>
+            <button class="icon-btn" id="navClose" type="button" aria-label="بستن"><svg class="i"><use href="#i-x"/></svg></button>
+        </div>
+        <div class="wrap nav-row">
+            <div class="nav-right">
+                <div class="mega" id="megaMenu">
+                    <button class="mega-btn" id="megaBtn" type="button" aria-expanded="false">
+                        <svg class="i"><use href="#i-menu"/></svg>
+                        <span>دسته بندی ها</span>
+                        <svg class="i mega-caret"><use href="#i-down"/></svg>
+                    </button>
+                    <div class="mega-panel" id="megaPanel">
+                        <div class="mega-grid">
+                            <div class="mega-cats-col">
+                                @foreach (var c in cats)
+                                {
+                                    <a asp-controller="Shop" asp-action="Index" asp-route-slug="@c.Slug">
+                                        <span class="mp-ic">@(string.IsNullOrWhiteSpace(c.Icon) ? "🛍️" : c.Icon)</span>
+                                        <span class="mp-txt">@c.Name</span>
+                                        <svg class="i mp-arr"><use href="#i-left"/></svg>
+                                    </a>
+                                }
+                            </div>
+                            <div class="mega-promo-col">
+                                <div class="mega-promo-head">دسترسی سریع به بخش‌های محبوب</div>
+                                <div class="mega-quick-links">
+                                    <a href="/products?sale=true">🔥 تخفیف‌های شگفت‌انگیز امروز</a>
+                                    <a href="/products?sort=popular">⭐ پرفروش‌ترین کالاهای فروشگاه</a>
+                                    <a href="/products?inStock=true">🚀 کالاهای آماده ارسال فوری</a>
+                                    <a href="/blog">📰 مجله تخصصی و راهنمای خرید</a>
+                                </div>
+                                <div class="mega-All-foot">
+                                    <a asp-controller="Shop" asp-action="Index">مشاهده‌ی همه‌ی محصولات فروشگاه ←</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a class="nav-item hot" href="/products?sale=true">شگفت‌انگیزها</a>
+                <a class="nav-item" href="/track">پیگیری سفارشات</a>
+                <a class="nav-item" href="/blog">وبلاگ</a>
+                <a class="nav-item" asp-controller="Shop" asp-action="Index">همه محصولات</a>
+                @foreach (var fp in footerPages.Take(2))
+                {
+                    <a class="nav-item" asp-controller="Content" asp-action="Show" asp-route-slug="@fp.Slug">@fp.Title</a>
+                }
+            </div>
+
+            <div class="nav-left">
+                <a class="hd-loc" href="/products?inStock=true" title="ارسال سریع به سراسر ایران">
+                    <svg class="i"><use href="#i-pin"/></svg>
+                    <span>انتخاب آدرس</span>
+                </a>
+                <a class="cartbtn" href="/cart">
+                    <svg class="i"><use href="#i-cart"/></svg>
+                    <span>سبد خرید</span>
+                    <span class="cart-cnt">@Fmt.Num(Cart.Count)</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <div class="wrap">
+        @if (TempData["Ok"] is string okMsg) { <div class="alert ok">@okMsg</div> }
+        @if (TempData["Err"] is string errMsg) { <div class="alert er">@errMsg</div> }
+        @RenderBody()
+    </div>
+</main>
+
+<footer class="ns-footer">
+    <div class="wrap">
+        <!-- ردیف بالای فوتر: لوگو و پشتیبانی (راست) | دکمه بازگشت به بالا (چپ) -->
+        <div class="ftop">
+            <div class="ftop-right">
+                <a href="/" class="logo flogo">
+                    <span class="logo-brand">
+                        <span class="logo-dots"><i></i><i></i></span>
+                        <b>@siteName</b>
+                    </span>
+                </a>
+                <div class="f-support-line">
+                    <span>تلفن پشتیبانی: @(string.IsNullOrWhiteSpace(Site.Get("contact.phone")) ? "۰۲۱-۰۰۰۰۰۰۰" : Site.Get("contact.phone").Replace("پشتیبانی:", "").Trim())</span>
+                    <span class="f-sep">|</span>
+                    <span>۷ روز هفته، ۲۴ ساعته پاسخگوی شما هستیم</span>
+                </div>
+            </div>
+            <button type="button" class="totop" id="toTop">
+                <span>بازگشت به بالا</span>
+                <svg class="i"><use href="#i-up"/></svg>
+            </button>
+        </div>
+
+        <!-- ۵ ستون لینک فوتر (از راست به چپ) -->
+        <div class="fgrid">
+            <div>
+                <h4>دسترسی سریع</h4>
+                <ul>
+                    <li><a href="/products">محصولات فروشگاه</a></li>
+                    <li><a href="/products?sale=true">تخفیف‌های شگفت‌انگیز</a></li>
+                    <li><a href="/track">پیگیری سفارشات</a></li>
+                    <li><a href="/cart">سبد خرید و پرداخت</a></li>
+                    <li><a href="/Account/Login">حساب کاربری</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>آرشیو های محبوب</h4>
+                <ul>
+                    @foreach (var c in cats.Take(5))
+                    {
+                        <li><a asp-controller="Shop" asp-action="Index" asp-route-slug="@c.Slug">@c.Name</a></li>
+                    }
+                </ul>
+            </div>
+            <div>
+                <h4>خدمات مشتریان</h4>
+                <ul>
+                    @foreach (var fp in footerPages)
+                    {
+                        <li><a asp-controller="Content" asp-action="Show" asp-route-slug="@fp.Slug">@fp.Title</a></li>
+                    }
+                    <li><a href="/track">رویه‌های بازگرداندن کالا</a></li>
+                    <li><a href="/products">حریم خصوصی کاربران</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>راهنمای خرید</h4>
+                <ul>
+                    <li><a href="/products">نحوه ثبت سفارش</a></li>
+                    <li><a href="/track">رویه ارسال سفارش</a></li>
+                    <li><a href="/cart">شیوه‌های پرداخت آنلاین و کارت‌به‌کارت</a></li>
+                </ul>
+            </div>
+            <div class="f-social-col">
+                <h4>همراه با ما</h4>
+                <div class="f-socials">
+                    <a href="#" aria-label="اینستاگرام" title="اینستاگرام"><svg class="i"><use href="#i-insta"/></svg></a>
+                    <a href="#" aria-label="تلگرام" title="تلگرام"><svg class="i"><use href="#i-telegram"/></svg></a>
+                    <a href="#" aria-label="یوتیوب" title="یوتیوب"><svg class="i"><use href="#i-youtube"/></svg></a>
+                    <a href="#" aria-label="فیسبوک" title="فیسبوک"><svg class="i"><use href="#i-facebook"/></svg></a>
+                </div>
+                <p class="f-news-lbl">با ثبت ایمیل، از جدیدترین تخفیف‌ها باخبر شوید</p>
+                <form class="f-newsletter" onsubmit="event.preventDefault(); this.querySelector('button').textContent='ثبت شد ✓';">
+                    <input type="email" placeholder="ایمیل شما" required />
+                    <button type="submit">ثبت نام</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- بلوک متن سئو / درباره فروشگاه (راست) + ۳ نماد اعتماد در کادرهای سفید با بوردر (چپ) -->
+        <div class="fseo-row">
+            <div class="fseo-txt">
+                <h4>@siteName، مرجع تخصصی خرید اینترنتی و تکنولوژی ایران</h4>
+                <p>@Site.Get("site.description") — در @siteName مجموعه‌ای کامل از جدیدترین کالاهای دیجیتال، لوازم خانه، پوشاک و محصولات منتخب با تضمین اصالت کالا، ارسال سریع به سراسر کشور و پشتیبانی ۲۴ ساعته گردآوری شده است تا تجربه‌ای امن، سریع و لذت‌بخش از خرید آنلاین داشته باشید.</p>
+            </div>
+            <div class="fbadges">
+                <div class="fbadge-box" title="نماد اعتماد الکترونیکی (اینماد)">
+                    <span class="fb-ic" style="color:#2563eb">★ eNamad</span>
+                    <small>نماد اعتماد الکترونیکی</small>
+                </div>
+                <div class="fbadge-box" title="نشان ملی ثبت رسانه‌های دیجیتال">
+                    <span class="fb-ic" style="color:#16a34a">✔ ساماندهی</span>
+                    <small>نشان ملی ثبت</small>
+                </div>
+                <div class="fbadge-box" title="عضو اتحادیه کشوری کسب‌وکارهای مجازی">
+                    <span class="fb-ic" style="color:#4f46e5">🛡️ اتحادیه</span>
+                    <small>کسب‌وکارهای مجازی</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- خط پایانی کپی‌رایت وسط‌چین -->
+        <div class="copy">
+            برای استفاده از مطالب @siteName، داشتن «هدف غیرتجاری» و ذکر «منبع» کافیست. تمام حقوق این وب‌سایت نیز برای فروشگاه @siteName محفوظ است.
+        </div>
+    </div>
+</footer>
+
+<nav class="bnav" aria-label="منوی پایین">
+    <a href="/"><svg class="i"><use href="#i-home"/></svg><span>خانه</span></a>
+    <button type="button" id="bnavCats"><svg class="i"><use href="#i-grid"/></svg><span>دسته‌ها</span></button>
+    <a href="/cart"><span class="bn-ic"><svg class="i"><use href="#i-cart"/></svg>@if (Cart.Count > 0) { <span class="badge">@Fmt.Num(Cart.Count)</span> }</span><span>سبد خرید</span></a>
+    <a href="/track"><svg class="i"><use href="#i-package"/></svg><span>پیگیری</span></a>
+</nav>
+
+<script src="~/js/negar-ui.js" asp-append-version="true"></script>
+</body>
+</html>

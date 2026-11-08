@@ -1,0 +1,42 @@
+@model SeoReport
+@{ ViewData["Title"] = "سئو و ریدایرکت‌ها"; }
+<div class="bar"><h2>سئو و ریدایرکت‌ها</h2></div>
+
+<div class="card">
+    <h3 class="sec">فایل‌های موتور جستجو (خودکار ساخته می‌شوند)</h3>
+    <a class="btn" href="/sitemap.xml" target="_blank">sitemap.xml</a>
+    <a class="btn" href="/robots.txt" target="_blank">robots.txt</a>
+    <span class="hint">بعد از انتشار سایت، آدرس sitemap.xml را در Google Search Console ثبت کنید.</span>
+</div>
+
+@foreach (var (title, items, ctl) in new (string, List<SeoItem>, string)[] {
+    ("محصولات بدون توضیحات سئو", Model.ProductsNoDesc, "Products"),
+    ("محصولات بدون تصویر", Model.ProductsNoImage, "Products"),
+    ("دسته‌بندی‌های بدون توضیحات سئو", Model.CategoriesNoDesc, "Categories"),
+    ("صفحه‌های بدون توضیحات سئو", Model.PagesNoDesc, "Pages") })
+{
+    <div class="card">
+        <h3 class="sec">@title <span class="badge @(items.Any() ? "wait" : "ok")">@(items.Any() ? Fmt.Num(items.Count) + " مورد" : "✓ همه‌چیز کامل است")</span></h3>
+        @foreach (var i in items) { <a class="btn sm" style="margin:3px" asp-controller="@ctl" asp-action="Edit" asp-route-id="@i.Id">@i.Name</a> }
+    </div>
+}
+
+<div class="card">
+    <h3 class="sec">ریدایرکت‌های ۳۰۱ (ساخته‌شده با تغییر آدرس صفحه‌ها)</h3>
+    <p class="hint">وقتی آدرس (slug) یک محصول، دسته یا صفحه را عوض کنید، آدرس قدیمی خودکار به آدرس جدید هدایت می‌شود تا رتبه‌ی گوگل از بین نرود.</p>
+    <table class="t">
+        <thead><tr><th>نوع</th><th>آدرس قدیمی</th><th>آدرس جدید</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var r in Model.Redirects)
+        {
+            <tr>
+                <td>@(r.Type == "product" ? "محصول" : r.Type == "category" ? "دسته‌بندی" : "صفحه")</td>
+                <td dir="ltr" style="text-align:right">@r.OldSlug</td>
+                <td dir="ltr" style="text-align:right">@r.NewSlug</td>
+                <td><form asp-action="DeleteRedirect" asp-route-id="@r.Id" method="post"><button class="btn sm dan" type="submit">حذف</button></form></td>
+            </tr>
+        }
+        @if (!Model.Redirects.Any()) { <tr><td colspan="4" style="text-align:center;color:#667085">هنوز ریدایرکتی ساخته نشده است</td></tr> }
+        </tbody>
+    </table>
+</div>

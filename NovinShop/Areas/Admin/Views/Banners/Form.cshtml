@@ -1,0 +1,27 @@
+@model Banner
+@{
+    var isNew = Model.Id == 0;
+    ViewData["Title"] = isNew ? "بنر جدید" : "ویرایش بنر";
+}
+<div class="bar"><h2>@ViewData["Title"]</h2><a class="btn" asp-action="Index">بازگشت</a></div>
+<form asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="form">
+    <div asp-validation-summary="ModelOnly" class="err"></div>
+    <div class="card">
+        <div class="fg"><label asp-for="Title">عنوان بنر</label><input asp-for="Title" /><span asp-validation-for="Title"></span></div>
+        <div class="fg"><label asp-for="Subtitle">زیرعنوان</label><textarea asp-for="Subtitle" rows="2"></textarea><span asp-validation-for="Subtitle"></span></div>
+        <div class="g2">
+            <div class="fg"><label asp-for="ButtonText">متن دکمه</label><input asp-for="ButtonText" /><span asp-validation-for="ButtonText"></span></div>
+            <div class="fg"><label asp-for="LinkUrl">لینک دکمه</label><input asp-for="LinkUrl" dir="ltr" placeholder="/products یا /category/digital" /><span asp-validation-for="LinkUrl"></span></div>
+            <div class="fg"><label asp-for="SortOrder">ترتیب نمایش</label><input asp-for="SortOrder" /></div>
+        </div>
+        <label class="chk"><input asp-for="IsActive" /> فعال</label>
+    </div>
+    <div class="card">
+        <h3 class="sec">تصویر پس‌زمینه (اختیاری)</h3>
+        @if (!string.IsNullOrEmpty(Model.ImagePath)) { <img src="@Model.ImagePath" alt="" style="width:260px;height:100px;object-fit:cover;border-radius:12px;margin-bottom:10px" /> }
+        <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" />
+        <span class="hint">پیشنهاد: عرض ۱۶۰۰ و ارتفاع ۶۰۰ پیکسل، حداکثر ۳ مگابایت.</span>
+        @Html.ValidationMessage("image", new { @class = "err" })
+    </div>
+    <button class="btn pri" type="submit">ذخیره</button>
+</form>

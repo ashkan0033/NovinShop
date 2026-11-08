@@ -1,0 +1,85 @@
+@model CheckoutPage
+@{
+    ViewData["Title"] = "تکمیل سفارش | نوین‌شاپ";
+    ViewData["Robots"] = "noindex,nofollow";
+    var cart = Model.Cart;
+}
+<div class="crumb"><a href="/">خانه</a> <span>/</span> <a href="/cart">سبد خرید</a> <span>/</span> <b>تکمیل سفارش</b></div>
+<div class="co">
+    <form asp-controller="Order" asp-action="Checkout" method="post" class="box form">
+        <h2 style="margin-top:0">۱. اطلاعات تحویل گیرنده</h2>
+        <div asp-validation-summary="ModelOnly" class="err" style="margin-bottom:10px"></div>
+        <div class="g2">
+            <div class="fg"><label asp-for="Form.Name">نام و نام خانوادگی</label><input asp-for="Form.Name" autocomplete="name" placeholder="مثال: علی رضایی" /><span asp-validation-for="Form.Name"></span></div>
+            <div class="fg"><label asp-for="Form.Phone">شماره موبایل</label><input asp-for="Form.Phone" dir="ltr" inputmode="numeric" placeholder="09123456789" autocomplete="tel" /><span asp-validation-for="Form.Phone"></span></div>
+        </div>
+        <div class="fg"><label asp-for="Form.Address">آدرس دقیق پستی و کدپستی</label><textarea asp-for="Form.Address" rows="3" placeholder="استان، شهر، خیابان، کوچه، پلاک، واحد..."></textarea><span asp-validation-for="Form.Address"></span></div>
+
+        <h2 style="margin:24px 0 12px;font-size:18px">۲. انتخاب روش پرداخت</h2>
+        <div style="display:grid;gap:10px;margin-bottom:18px">
+            @foreach (var g in Model.Gateways)
+            {
+                var ic = g.Key == "zarinpal" ? "🟢" : g.Key == "card_to_card" ? "💳" : "🧪";
+                <label class="gw-opt" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid var(--line);border-radius:14px;cursor:pointer;background:var(--card2)">
+                    <input type="radio" name="Form.PaymentMethod" value="@g.Key" checked="@(Model.Form.PaymentMethod == g.Key)" style="width:20px;height:20px;accent-color:var(--primary)" />
+                    <span style="font-size:24px">@ic</span>
+                    <div style="flex:1">
+                        <b style="display:block;font-size:14.5px">@g.Title</b>
+                        @if (!string.IsNullOrWhiteSpace(g.Description))
+                        {
+                            <small style="color:var(--muted);font-size:12.5px">@g.Description</small>
+                        }
+                    </div>
+                </label>
+            }
+        </div>
+
+        <button class="btn pri" style="width:100%;padding:14px;font-size:15px" type="submit">ثبت سفارش و انتقال به صفحه پرداخت <svg class="i"><use href="#i-left"/></svg></button>
+    </form>
+    <aside class="box">
+        <h2 style="margin-top:0;font-size:18px">خلاصه‌ی سفارش</h2>
+        @foreach (var l in cart.Lines)
+        {
+            <div class="line"><span>@l.Product.Name × @Fmt.Num(l.Qty)</span><span>@Fmt.Toman(l.Total)</span></div>
+        }
+        <div class="line"><span>جمع کالاها</span><span>@Fmt.Toman(cart.Subtotal)</span></div>
+        @if (cart.Discount > 0)
+        {
+            <div class="line" style="color:var(--green);font-weight:700">
+                <span>کد تخفیف (<span dir="ltr">@cart.CouponCode</span>)</span>
+                <span>− @Fmt.Toman(cart.Discount)</span>
+            </div>
+        }
+        <div class="line"><span>هزینه ارسال</span><span class="@(cart.Shipping == 0 ? "free-txt" : "")">@(cart.Shipping == 0 ? "رایگان" : Fmt.Toman(cart.Shipping))</span></div>
+        <div class="line" style="font-weight:800;font-size:17px;border:0"><span>مبلغ قابل پرداخت</span><span>@Fmt.Toman(cart.Total)</span></div>
+
+        <div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)">
+            @if (!string.IsNullOrEmpty(cart.CouponCode) && cart.Discount > 0)
+            {
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;background:color-mix(in srgb,var(--green) 10%,var(--card));border:1px solid color-mix(in srgb,var(--green) 30%,var(--line));padding:10px 12px;border-radius:12px">
+                    <div style="font-size:12.5px">
+                        <b style="color:var(--green);display:block">🏷️ کد <span dir="ltr">@cart.CouponCode</span> اعمال شد</b>
+                        <span style="color:var(--muted)">@cart.CouponTitle</span>
+                    </div>
+                    <form asp-controller="Cart" asp-action="RemoveCoupon" method="post" style="margin:0">
+                        <input type="hidden" name="returnUrl" value="/checkout" />
+                        <button class="btn sm dan-btn" type="submit">حذف</button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <label style="display:block;font-size:13px;font-weight:700;margin-bottom:6px">کد تخفیف دارید؟</label>
+                @if (!string.IsNullOrEmpty(cart.CouponError))
+                {
+                    <div class="err" style="margin-bottom:6px;font-size:12.5px">⚠ @cart.CouponError</div>
+                }
+                <form asp-controller="Cart" asp-action="ApplyCoupon" method="post" style="display:flex;gap:8px;margin:0">
+                    <input type="hidden" name="returnUrl" value="/checkout" />
+                    <input type="text" name="code" value="@cart.CouponCode" dir="ltr" placeholder="مثال: WELCOME15" style="flex:1;min-width:0;padding:9px 12px;text-transform:uppercase;font-size:13px" />
+                    <button class="btn" type="submit" style="padding:9px 14px;font-size:13px">ثبت کد</button>
+                </form>
+            }
+        </div>
+    </aside>
+</div>

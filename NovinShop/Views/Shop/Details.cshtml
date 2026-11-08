@@ -1,0 +1,457 @@
+@model ProductPageViewModel
+@{
+    var p = Model.Product;
+    var host = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var off = p.OldPrice is > 0 ? (int)Math.Round((1 - (double)p.Price / p.OldPrice.Value) * 100) : 0;
+    var allImages = p.GetAllImages();
+    var specs = p.GetSpecs();
+    var reviews = Model.Reviews;
+    var avgStr = Fmt.Fa(Model.AvgRating.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture));
+
+    var ldObj = new Dictionary<string, object?>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "Product",
+        ["name"] = p.Name,
+        ["description"] = p.SeoDescription ?? p.ShortDescription ?? p.Name,
+        ["sku"] = "NS-" + p.Id,
+        ["image"] = allImages.Count == 0 ? null : allImages.Select(x => host + x).ToArray(),
+        ["offers"] = new Dictionary<string, object?>
+        {
+            ["@type"] = "Offer",
+            ["priceCurrency"] = "IRR",
+            ["price"] = p.Price * 10L,
+            ["availability"] = p.Stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            ["url"] = host + Context.Request.Path.ToUriComponent()
+        }
+    };
+    if (reviews.Count > 0)
+    {
+        ldObj["aggregateRating"] = new Dictionary<string, object?>
+        {
+            ["@type"] = "AggregateRating",
+            ["ratingValue"] = Model.AvgRating,
+            ["reviewCount"] = reviews.Count
+        };
+    }
+    var ld = System.Text.Json.JsonSerializer.Serialize(ldObj);
+    var bc = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "BreadcrumbList",
+        ["itemListElement"] = new object[]
+        {
+            new Dictionary<string, object?> { ["@type"] = "ListItem", ["position"] = 1, ["name"] = "خانه", ["item"] = host + "/" },
+            new Dictionary<string, object?> { ["@type"] = "ListItem", ["position"] = 2, ["name"] = p.Category?.Name, ["item"] = host + "/category/" + Uri.EscapeDataString(p.Category?.Slug ?? "") },
+            new Dictionary<string, object?> { ["@type"] = "ListItem", ["position"] = 3, ["name"] = p.Name }
+        }
+    });
+}
+@section Head {
+    <meta property="og:type" content="product" />
+    <script type="application/ld+json">@Html.Raw(ld)</script>
+    <script type="application/ld+json">@Html.Raw(bc)</script>
+}
+@{ ViewData["BodyClass"] = "has-mbar"; }
+<div class="crumb">
+    <a href="/">خانه</a> <span>/</span>
+    <a asp-controller="Shop" asp-action="Index" asp-route-slug="@p.Category?.Slug">@p.Category?.Name</a> <span>/</span> <b>@p.Name</b>
+</div>
+<div class="pgrid">
+    <div class="pgallery">
+        <div class="big" id="mainGalleryBox" style="cursor:@(allImages.Count > 0 ? "zoom-in" : "default")">
+            @if (allImages.Count > 0)
+            {
+                <img id="mainProdImg" src="@allImages[0]" alt="@p.Name" />
+                <button type="button" class="zoom-btn" id="openLbBtn" title="بزرگ‌نمایی گالری تصاویر">
+                    <svg class="i"><use href="#i-search"/></svg> بزرگ‌نمایی (@Fmt.Num(allImages.Count) تصویر)
+                </button>
+            }
+            else
+            {
+                <div class="ph" id="mainPhBox" style="--h:@(p.Id * 47 % 360)"><span>@Fmt.ProductIcon(p)</span></div>
+            }
+            @if (off > 0) { <span class="off">@Fmt.Num(off)٪ تخفیف</span> }
+        </div>
+
+        @if (allImages.Count > 1)
+        {
+            <div class="p-thumbs" id="thumbStrip">
+                @for (int i = 0; i < allImages.Count; i++)
+                {
+                    <button type="button" class="p-thumb @(i == 0 ? "on" : "")" data-idx="@i" data-src="@allImages[i]" aria-label="تصویر @(i + 1)">
+                        <img src="@allImages[i]" alt="@p.Name - @(i + 1)" />
+                    </button>
+                }
+            </div>
+        }
+        else if (allImages.Count == 0)
+        {
+            <div class="p-thumbs" id="phThumbStrip">
+                @{
+                    var ic = Fmt.ProductIcon(p);
+                    var angles = new[] { (0, "نمای اصلی", ic), (45, "نمای جانبی", "✨"), (95, "جزئیات ساخت", "🔍"), (155, "بسته‌بندی", "🎁") };
+                }
+                @for (int i = 0; i < angles.Length; i++)
+                {
+                    var (hueOff, lbl, em) = angles[i];
+                    var h = (p.Id * 47 + hueOff) % 360;
+                    <button type="button" class="p-thumb @(i == 0 ? "on" : "")" data-hue="@h" data-em="@em" title="@lbl">
+                        <div class="ph" style="--h:@h;font-size:24px"><span>@em</span></div>
+                        <small class="p-thumb-lbl">@lbl</small>
+                    </button>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="pinfo">
+        <div class="pmeta-top">
+            <a class="chip" asp-controller="Shop" asp-action="Index" asp-route-slug="@p.Category?.Slug">@p.Category?.Name</a>
+            <div style="display:flex;align-items:center;gap:12px">
+                @if (reviews.Count > 0)
+                {
+                    <a href="#reviews-sec" class="rating-pill" title="مشاهده دیدگاه‌ها">
+                        <span style="color:#f59e0b">★</span> <b>@avgStr</b> <small>(@Fmt.Num(reviews.Count) دیدگاه)</small>
+                    </a>
+                }
+                <span class="sku-tag">کد کالا: NS-@Fmt.Num(p.Id)</span>
+            </div>
+        </div>
+        <h1>@p.Name</h1>
+        @if (!string.IsNullOrEmpty(p.ShortDescription)) { <p class="desc short-desc">@p.ShortDescription</p> }
+
+        @if (specs.Count > 0)
+        {
+            <div class="top-specs-wrap">
+                <span class="top-specs-lbl">ویژگی‌های شاخص محصول:</span>
+                <div class="top-specs-grid">
+                    @foreach (var sp in specs.Take(4))
+                    {
+                        <div class="top-spec-card">
+                            <small>@sp.Key</small>
+                            <b>@sp.Value</b>
+                        </div>
+                    }
+                </div>
+                @if (specs.Count > 4)
+                {
+                    <a href="#specs-sec" class="top-specs-more">مشاهده‌ی تمام @Fmt.Num(specs.Count) مشخصه فنی ↓</a>
+                }
+            </div>
+        }
+
+        <div class="buy-card">
+            <div class="buy-row-meta">
+                <div class="stock @(p.Stock == 0 ? "no" : p.Stock <= 3 ? "low" : "")">
+                    @(p.Stock == 0 ? "ناموجود در انبار" : p.Stock <= 3 ? $"تنها {Fmt.Num(p.Stock)} عدد در انبار باقی مانده" : "موجود در انبار فروشنده (ارسال فوری)")
+                </div>
+            </div>
+            <div class="pprice">
+                @if (p.OldPrice is > 0)
+                {
+                    <div class="pprice-old">
+                        <s>@Fmt.Num(p.OldPrice.Value)</s>
+                        <span class="dc">@Fmt.Num(off)٪</span>
+                    </div>
+                }
+                <div class="pprice-now"><b>@Fmt.Num(p.Price)</b> <small>تومان</small></div>
+            </div>
+            @if (p.Stock > 0)
+            {
+                <form asp-controller="Cart" asp-action="Add" method="post" class="buyrow">
+                    <input type="hidden" name="id" value="@p.Id" />
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                    <div class="qty">
+                        <button type="button" data-step="-1" aria-label="کم کردن">−</button>
+                        <input type="number" name="qty" value="1" min="1" max="@Math.Min(p.Stock, 10)" />
+                        <button type="button" data-step="1" aria-label="زیاد کردن">+</button>
+                    </div>
+                    <button class="btn pri" type="submit"><svg class="i"><use href="#i-cart"/></svg> افزودن به سبد خرید</button>
+                </form>
+            }
+            <ul class="trust">
+                <li><svg class="i"><use href="#i-shield"/></svg> گارانتی اصالت و سلامت فیزیکی کالا</li>
+                <li><svg class="i"><use href="#i-truck"/></svg> @(p.Price >= 1_000_000 ? "ارسال رایگان این کالا به سراسر کشور" : "ارسال سریع ۲۴ تا ۷۲ ساعته به سراسر کشور")</li>
+                <li><svg class="i"><use href="#i-undo"/></svg> هفت روز ضمانت بازگشت کالا بدون قید و شرط</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<nav class="p-tabs" aria-label="بخش‌های اطلاعات محصول">
+    @if (!string.IsNullOrEmpty(p.Description))
+    {
+        <a href="#desc-sec" class="p-tab on">📖 معرفی و بررسی تخصصی</a>
+    }
+    @if (specs.Count > 0)
+    {
+        <a href="#specs-sec" class="p-tab @(string.IsNullOrEmpty(p.Description) ? "on" : "")">📋 مشخصات فنی (@Fmt.Num(specs.Count))</a>
+    }
+    <a href="#reviews-sec" class="p-tab">💬 دیدگاه و امتیاز کاربران (@Fmt.Num(reviews.Count))</a>
+</nav>
+
+@if (!string.IsNullOrEmpty(p.Description))
+{
+    <section class="sec-box" id="desc-sec" style="margin-top:16px">
+        <div class="sec-head" style="margin-bottom:12px">
+            <h2 class="h">معرفی و بررسی تخصصی</h2>
+        </div>
+        <div class="desc-full">@Html.Raw(ContentRenderer.ToHtml(p.Description))</div>
+    </section>
+}
+
+@if (specs.Count > 0)
+{
+    <section class="sec-box" id="specs-sec" style="margin-top:20px">
+        <div class="sec-head" style="margin-bottom:14px">
+            <h2 class="h">مشخصات فنی @p.Name</h2>
+        </div>
+        <div class="specs-table">
+            @foreach (var sp in specs)
+            {
+                <div class="spec-item">
+                    <div class="spec-k">@sp.Key</div>
+                    <div class="spec-v">@sp.Value</div>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+<section class="sec-box" id="reviews-sec" style="margin-top:20px">
+    <div class="sec-head" style="margin-bottom:16px">
+        <h2 class="h">امتیاز و دیدگاه کاربران درباره @p.Name</h2>
+    </div>
+
+    <div class="rev-grid">
+        <aside class="rev-side">
+            <div class="rev-score-box">
+                @if (reviews.Count > 0)
+                {
+                    <div class="rev-big-num">@avgStr <small>از ۵</small></div>
+                    <div class="rev-stars">
+                        @for (int s = 1; s <= 5; s++)
+                        {
+                            <span class="@(s <= Math.Round(Model.AvgRating) ? "on" : "")">★</span>
+                        }
+                    </div>
+                    <small style="color:var(--muted)">بر اساس مجموع @Fmt.Num(reviews.Count) دیدگاه ثبت‌شده</small>
+
+                    <div class="rev-bars">
+                        @for (int s = 5; s >= 1; s--)
+                        {
+                            var cnt = reviews.Count(r => r.Rating == s);
+                            var pct = (int)Math.Round(cnt * 100.0 / reviews.Count);
+                            <div class="rev-bar-row">
+                                <span>@Fmt.Num(s) ★</span>
+                                <div class="rev-bar-track"><i style="width:@(pct)%"></i></div>
+                                <small>@Fmt.Num(cnt)</small>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div style="font-size:34px;margin-bottom:4px">💬</div>
+                    <b>اولین نفری باشید که دیدگاه ثبت می‌کند!</b>
+                    <small style="color:var(--muted);display:block;margin-top:4px">تجربه خرید یا نظر خود درباره این کالا را با دیگران به اشتراک بگذارید.</small>
+                }
+            </div>
+
+            <form asp-controller="Shop" asp-action="AddReview" asp-route-slug="@p.Slug" method="post" class="rev-form form">
+                <h3 style="margin:0 0 12px;font-size:15.5px">✍️ ثبت دیدگاه و امتیاز جدید</h3>
+                <div class="fg">
+                    <label>امتیاز شما به این محصول</label>
+                    <select name="rating" style="font-weight:700">
+                        <option value="5">⭐⭐⭐⭐⭐ (۵ از ۵ — عالی و بی‌نقص)</option>
+                        <option value="4">⭐⭐⭐⭐ (۴ از ۵ — خوب و باارزش)</option>
+                        <option value="3">⭐⭐⭐ (۳ از ۵ — معمولی)</option>
+                        <option value="2">⭐⭐ (۲ از ۵ — ضعیف)</option>
+                        <option value="1">⭐ (۱ از ۵ — بسیار ضعیف)</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>نام و نام خانوادگی شما *</label>
+                    <input type="text" name="authorName" required minlength="2" maxlength="80" placeholder="مثال: سارا محمدی" />
+                </div>
+                <div class="fg">
+                    <label>عنوان دیدگاه (اختیاری)</label>
+                    <input type="text" name="title" maxlength="120" placeholder="مثال: کیفیت ساخت عالی نسبت به قیمت" />
+                </div>
+                <div class="g2">
+                    <div class="fg">
+                        <label style="color:var(--green)">+ نقاط قوت (اختیاری)</label>
+                        <input type="text" name="pros" maxlength="250" placeholder="مثال: شارژدهی بالا، بسته‌بندی شیک" />
+                    </div>
+                    <div class="fg">
+                        <label style="color:var(--red)">− نقاط ضعف (اختیاری)</label>
+                        <input type="text" name="cons" maxlength="250" placeholder="مثال: وزن نسبتاً زیاد" />
+                    </div>
+                </div>
+                <div class="fg">
+                    <label>متن دیدگاه شما *</label>
+                    <textarea name="comment" rows="3" required minlength="5" maxlength="1500" placeholder="تجربه کاربری و نظر خود درباره کیفیت و کارایی این محصول را بنویسید..."></textarea>
+                </div>
+                <button class="btn pri" type="submit" style="width:100%">ثبت دیدگاه</button>
+            </form>
+        </aside>
+
+        <div class="rev-list">
+            @if (!reviews.Any())
+            {
+                <div class="empty" style="padding:48px 20px">
+                    هنوز دیدگاهی برای این محصول ثبت نشده است. شما می‌توانید اولین دیدگاه را در فرم کنار صفحه ثبت کنید.
+                </div>
+            }
+            @foreach (var r in reviews)
+            {
+                var rateClass = r.Rating >= 4 ? "ok" : r.Rating == 3 ? "wait" : "er";
+                <article class="rev-card">
+                    <div class="rev-head">
+                        <div class="rev-user">
+                            <span class="rev-av">@(r.AuthorName.Length > 0 ? r.AuthorName[..1] : "ک")</span>
+                            <div>
+                                <b>@r.AuthorName</b>
+                                @if (r.IsBuyer)
+                                {
+                                    <span class="buyer-badge">✓ خریدار محصول</span>
+                                }
+                                <small class="rev-date">@Fmt.Date(r.CreatedAt)</small>
+                            </div>
+                        </div>
+                        <span class="rev-rate @rateClass">@Fmt.Num(r.Rating) ★</span>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(r.Title))
+                    {
+                        <h4 class="rev-title">@r.Title</h4>
+                    }
+                    <p class="rev-txt">@r.Comment</p>
+
+                    @if (!string.IsNullOrWhiteSpace(r.Pros) || !string.IsNullOrWhiteSpace(r.Cons))
+                    {
+                        <div class="rev-points">
+                            @if (!string.IsNullOrWhiteSpace(r.Pros))
+                            {
+                                <div class="rev-pro"><b>+ نقاط قوت:</b> @r.Pros</div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(r.Cons))
+                            {
+                                <div class="rev-con"><b>− نقاط ضعف:</b> @r.Cons</div>
+                            }
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(r.AdminReply))
+                    {
+                        <div class="rev-reply">
+                            <b>🎧 پاسخ پشتیبانی فروشگاه:</b>
+                            <p>@r.AdminReply</p>
+                        </div>
+                    }
+                </article>
+            }
+        </div>
+    </div>
+</section>
+
+@if (Model.Related.Any())
+{
+    <section class="sec-box" style="margin-top:24px">
+        <div class="sec-head"><h2 class="h">کالاهای مشابه</h2></div>
+        <div class="grid">@foreach (var r in Model.Related) { <partial name="_ProductCard" model="r" /> }</div>
+    </section>
+}
+
+@if (allImages.Count > 0)
+{
+    <div class="lb-modal" id="lbModal" aria-hidden="true">
+        <button type="button" class="lb-close" id="lbClose" aria-label="بستن">×</button>
+        @if (allImages.Count > 1)
+        {
+            <button type="button" class="lb-nav prev" id="lbPrev" aria-label="قبلی"><svg class="i"><use href="#i-right"/></svg></button>
+            <button type="button" class="lb-nav next" id="lbNext" aria-label="بعدی"><svg class="i"><use href="#i-left"/></svg></button>
+        }
+        <div class="lb-body">
+            <img id="lbImg" src="@allImages[0]" alt="@p.Name" />
+            <div class="lb-caption" id="lbCount"></div>
+        </div>
+    </div>
+}
+
+<script>
+    (function () {
+        var images = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(allImages));
+        var mainImg = document.getElementById('mainProdImg');
+        var mainBox = document.getElementById('mainGalleryBox');
+        var thumbStrip = document.getElementById('thumbStrip');
+        var phThumbStrip = document.getElementById('phThumbStrip');
+        var mainPhBox = document.getElementById('mainPhBox');
+        var curIdx = 0;
+
+        if (thumbStrip && mainImg) {
+            thumbStrip.addEventListener('click', function (e) {
+                var btn = e.target.closest('.p-thumb');
+                if (!btn) return;
+                curIdx = parseInt(btn.dataset.idx || '0', 10);
+                mainImg.src = btn.dataset.src;
+                thumbStrip.querySelectorAll('.p-thumb').forEach(function (t) { t.classList.remove('on'); });
+                btn.classList.add('on');
+            });
+        }
+
+        if (phThumbStrip && mainPhBox) {
+            phThumbStrip.addEventListener('click', function (e) {
+                var btn = e.target.closest('.p-thumb');
+                if (!btn) return;
+                mainPhBox.style.setProperty('--h', btn.dataset.hue);
+                mainPhBox.querySelector('span').textContent = btn.dataset.em;
+                phThumbStrip.querySelectorAll('.p-thumb').forEach(function (t) { t.classList.remove('on'); });
+                btn.classList.add('on');
+            });
+        }
+
+        var lbModal = document.getElementById('lbModal');
+        if (lbModal && images.length > 0) {
+            var lbImg = document.getElementById('lbImg');
+            var lbCount = document.getElementById('lbCount');
+            var lbClose = document.getElementById('lbClose');
+            var lbPrev = document.getElementById('lbPrev');
+            var lbNext = document.getElementById('lbNext');
+
+            function showLb(idx) {
+                curIdx = (idx + images.length) % images.length;
+                lbImg.src = images[curIdx];
+                if (lbCount) lbCount.textContent = (curIdx + 1) + ' از ' + images.length;
+                lbModal.classList.add('open');
+            }
+            function hideLb() { lbModal.classList.remove('open'); }
+
+            mainBox.addEventListener('click', function () { showLb(curIdx); });
+            lbClose.addEventListener('click', hideLb);
+            lbModal.addEventListener('click', function (e) { if (e.target === lbModal) hideLb(); });
+            if (lbPrev) lbPrev.addEventListener('click', function (e) { e.stopPropagation(); showLb(curIdx - 1); });
+            if (lbNext) lbNext.addEventListener('click', function (e) { e.stopPropagation(); showLb(curIdx + 1); });
+            document.addEventListener('keydown', function (e) {
+                if (!lbModal.classList.contains('open')) return;
+                if (e.key === 'Escape') hideLb();
+                if (e.key === 'ArrowLeft') showLb(curIdx + 1);
+                if (e.key === 'ArrowRight') showLb(curIdx - 1);
+            });
+        }
+    })();
+</script>
+
+@if (p.Stock > 0)
+{
+    <div class="mbar">
+        <b>@Fmt.Toman(p.Price)</b>
+        <form asp-controller="Cart" asp-action="Add" method="post">
+            <input type="hidden" name="id" value="@p.Id" />
+            <input type="hidden" name="qty" value="1" />
+            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+            <button class="btn pri" type="submit"><svg class="i"><use href="#i-cart"/></svg> افزودن به سبد</button>
+        </form>
+    </div>
+}

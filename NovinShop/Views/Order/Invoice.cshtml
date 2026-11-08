@@ -1,0 +1,244 @@
+@model Order
+@inject SiteSettings Site
+@{
+    Layout = null;
+    var siteName = Site.Get("site.name");
+    var sitePhone = Site.Get("footer.phone");
+    var siteDesc = Site.Get("site.description");
+    var isAdmin = (bool)(ViewBag.IsAdmin ?? false);
+    var mode = (string)(ViewBag.Mode ?? "invoice"); // invoice | label | both
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>فاکتور سفارش @Model.Code - @siteName</title>
+    <style>
+        @@font-face{font-family:Vazirmatn;src:local('Vazirmatn'),url('/fonts/Vazirmatn-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+        @@font-face{font-family:Vazirmatn;src:local('Vazirmatn Bold'),url('/fonts/Vazirmatn-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
+        *{box-sizing:border-box}
+        body{margin:0;padding:24px;font-family:Vazirmatn,Tahoma,sans-serif;background:#f1f5f9;color:#0f172a;font-size:13.5px;line-height:1.8}
+        .wrap{max-width:860px;margin:0 auto}
+        .toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:#fff;border:1px solid #e2e8f0;padding:12px 18px;border-radius:16px;margin-bottom:20px;box-shadow:0 4px 14px #0f172a0a}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;font:inherit;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;transition:.15s}
+        .btn:hover{border-color:#ef394e;color:#ef394e}
+        .btn.pri{background:#ef394e;color:#fff;border-color:#ef394e}
+        .btn.on{background:#0f172a;color:#fff;border-color:#0f172a}
+        .sheet{background:#fff;border:1px solid #cbd5e1;border-radius:18px;padding:28px;margin-bottom:24px;box-shadow:0 6px 20px #0f172a0a}
+        .inv-head{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #0f172a;padding-bottom:16px;margin-bottom:18px;gap:16px}
+        .brand{display:flex;align-items:center;gap:12px}
+        .brand-logo{width:48px;height:48px;border-radius:12px;background:#ef394e;color:#fff;display:grid;place-items:center;font-weight:700;font-size:22px}
+        .brand h1{margin:0;font-size:20px}
+        .brand small{color:#64748b;font-size:12px}
+        .inv-meta{display:grid;grid-template-columns:auto auto;gap:4px 16px;font-size:12.5px;background:#f8fafc;border:1px solid #e2e8f0;padding:10px 14px;border-radius:12px}
+        .inv-meta span{color:#64748b}
+        .parties{display:grid;grid-template-columns:1fr 1.3fr;gap:14px;margin-bottom:18px}
+        .party-box{border:1px solid #cbd5e1;border-radius:12px;padding:12px 16px;background:#f8fafc}
+        .party-box h3{margin:0 0 6px;font-size:13.5px;color:#475569;border-bottom:1px dashed #cbd5e1;padding-bottom:4px}
+        table.inv-t{width:100%;border-collapse:collapse;margin-bottom:18px}
+        table.inv-t th,table.inv-t td{border:1px solid #cbd5e1;padding:9px 12px;text-align:right}
+        table.inv-t th{background:#f1f5f9;font-size:12.5px;color:#334155}
+        .totals-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;align-items:start}
+        .sign-box{display:grid;grid-template-columns:1fr 1fr;gap:12px;border:1px dashed #94a3b8;border-radius:12px;padding:14px;min-height:110px;font-size:12px;color:#64748b;text-align:center}
+        .sum-box{border:1px solid #cbd5e1;border-radius:12px;overflow:hidden}
+        .sum-row{display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #e2e8f0}
+        .sum-row.final{background:#0f172a;color:#fff;font-weight:700;font-size:15px;border:0}
+
+        /* برچسب پستی */
+        .label-sheet{background:#fff;border:2px dashed #0f172a;border-radius:18px;padding:24px;position:relative}
+        .cut-badge{position:absolute;top:-13px;right:24px;background:#fff;padding:0 10px;font-size:12px;font-weight:700;color:#475569}
+        .lbl-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:18px;border:2px solid #0f172a;border-radius:14px;padding:18px}
+        .lbl-sec{display:flex;flex-direction:column;gap:6px}
+        .lbl-sec.sender{border-left:2px dashed #94a3b8;padding-left:18px}
+        .lbl-tag{display:inline-block;background:#0f172a;color:#fff;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:700;align-self:flex-start}
+        .barcode{font-family:monospace;letter-spacing:3px;font-size:18px;font-weight:700;text-align:center;background:#f8fafc;border:1px solid #cbd5e1;padding:8px;border-radius:8px;margin-top:auto}
+        .lbl-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:12.5px;font-weight:700}
+
+        body[data-mode="invoice"] .label-sheet{display:none}
+        body[data-mode="label"] .inv-sheet{display:none}
+
+        @@media print{
+            body{background:#fff;padding:0}
+            .toolbar{display:none !important}
+            .sheet,.label-sheet{box-shadow:none;margin-bottom:16px;page-break-inside:avoid}
+        }
+        @@media (max-width:680px){
+            .inv-head,.parties,.totals-grid,.lbl-grid{grid-template-columns:1fr;flex-direction:column;align-items:stretch}
+            .lbl-sec.sender{border-left:0;border-bottom:2px dashed #94a3b8;padding-left:0;padding-bottom:14px}
+        }
+    </style>
+</head>
+<body data-mode="@mode">
+<div class="wrap">
+    <div class="toolbar">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button type="button" class="btn mode-btn @(mode == "invoice" ? "on" : "")" data-m="invoice">📄 فاکتور رسمی فروش</button>
+            @if (isAdmin)
+            {
+                <button type="button" class="btn mode-btn @(mode == "label" ? "on" : "")" data-m="label">📦 برچسب پستی مرسوله</button>
+                <button type="button" class="btn mode-btn @(mode == "both" ? "on" : "")" data-m="both">📄+📦 نمایش هر دو</button>
+            }
+        </div>
+        <div style="display:flex;gap:8px">
+            <button type="button" class="btn pri" onclick="window.print()">🖨️ چاپ / ذخیره PDF</button>
+            @if (isAdmin)
+            {
+                <a class="btn" href="/Admin/Orders/Details/@Model.Id">بازگشت به پنل</a>
+            }
+            else
+            {
+                <a class="btn" href="/order/@Model.Code">بازگشت به سفارش</a>
+            }
+        </div>
+    </div>
+
+    <!-- ۱) فاکتور رسمی فروش -->
+    <section class="sheet inv-sheet">
+        <div class="inv-head">
+            <div class="brand">
+                <div class="brand-logo">@(siteName.Length > 0 ? siteName[..1] : "ن")</div>
+                <div>
+                    <h1>صورت‌حساب فروش کالا و خدمات — @siteName</h1>
+                    <small>@siteDesc • تلفن پشتیبانی: <span dir="ltr">@Fmt.Fa(sitePhone)</span></small>
+                </div>
+            </div>
+            <div class="inv-meta">
+                <span>شماره فاکتور:</span><b dir="ltr">@Model.Code</b>
+                <span>تاریخ ثبت:</span><b>@Fmt.Date(Model.CreatedAt)</b>
+                <span>وضعیت سفارش:</span><b>@Model.Status.Label()</b>
+                <span>روش پرداخت:</span><b>@OrderStatusInfo.MethodLabel(Model.PaymentMethod)</b>
+                @if (!string.IsNullOrEmpty(Model.PaymentRef))
+                {
+                    <span>کد رهگیری پرداخت:</span><b dir="ltr">@Model.PaymentRef</b>
+                }
+            </div>
+        </div>
+
+        <div class="parties">
+            <div class="party-box">
+                <h3>مشخصات فروشنده</h3>
+                <div><b>نام فروشگاه:</b> فروشگاه اینترنتی @siteName</div>
+                <div><b>تلفن تماس:</b> <span dir="ltr">@Fmt.Fa(sitePhone)</span></div>
+                <div><b>نشانی وب‌سایت:</b> <span dir="ltr">@Context.Request.Host</span></div>
+            </div>
+            <div class="party-box">
+                <h3>مشخصات خریدار (تحویل‌گیرنده)</h3>
+                <div><b>نام و نام خانوادگی:</b> @Model.CustomerName</div>
+                <div><b>شماره موبایل:</b> <span dir="ltr">@Fmt.Fa(Model.Phone)</span></div>
+                <div><b>نشانی کامل پستی:</b> @Model.Address</div>
+            </div>
+        </div>
+
+        <table class="inv-t">
+            <thead>
+                <tr>
+                    <th style="width:48px;text-align:center">ردیف</th>
+                    <th style="width:95px">کد کالا</th>
+                    <th>شرح کالا یا خدمات</th>
+                    <th style="width:70px;text-align:center">تعداد</th>
+                    <th style="width:140px">مبلغ واحد (تومان)</th>
+                    <th style="width:150px">مبلغ کل (تومان)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Items.Count; i++)
+                {
+                    var item = Model.Items[i];
+                    <tr>
+                        <td style="text-align:center">@Fmt.Num(i + 1)</td>
+                        <td dir="ltr" style="text-align:right">NS-@Fmt.Num(item.ProductId)</td>
+                        <td><b>@item.ProductName</b></td>
+                        <td style="text-align:center"><b>@Fmt.Num(item.Quantity)</b></td>
+                        <td>@Fmt.Num(item.UnitPrice)</td>
+                        <td><b>@Fmt.Num(item.Total)</b></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="totals-grid">
+            <div class="sign-box">
+                <div>
+                    <b>مهر و امضای فروشنده (@siteName)</b>
+                    <div style="margin-top:26px;color:#059669;font-weight:700">✓ تأیید اصالت و سلامت فیزیکی کالا</div>
+                </div>
+                <div>
+                    <b>امضای تحویل‌گیرنده (@Model.CustomerName)</b>
+                    <div style="margin-top:26px">تاریخ تحویل: ........ / ........ / ۱۴۰۵</div>
+                </div>
+            </div>
+
+            <div class="sum-box">
+                <div class="sum-row">
+                    <span>جمع کل اقلام (@Fmt.Num(Model.Items.Sum(x => x.Quantity)) عدد):</span>
+                    <b>@Fmt.Toman(Model.Subtotal)</b>
+                </div>
+                @if (Model.DiscountAmount > 0)
+                {
+                    <div class="sum-row" style="color:#059669">
+                        <span>کسر تخفیف کوپن (@Model.CouponCode):</span>
+                        <b>− @Fmt.Toman(Model.DiscountAmount)</b>
+                    </div>
+                }
+                <div class="sum-row">
+                    <span>هزینه بسته‌بندی و ارسال:</span>
+                    <b>@(Model.Shipping == 0 ? "رایگان" : Fmt.Toman(Model.Shipping))</b>
+                </div>
+                <div class="sum-row final">
+                    <span>مبلغ نهایی فاکتور:</span>
+                    <span>@Fmt.Toman(Model.Total)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ۲) برچسب پستی استاندارد (لیبل روی بسته) -->
+    <section class="label-sheet">
+        <span class="cut-badge">✂️ برچسب پستی مرسوله (برش از خط‌چین و الصاق روی بسته)</span>
+        <div class="lbl-grid">
+            <div class="lbl-sec sender">
+                <span class="lbl-tag">فرستنده</span>
+                <b style="font-size:15px">واحد پردازش و ارسال @siteName</b>
+                <div>تلفن پشتیبانی: <b dir="ltr">@Fmt.Fa(sitePhone)</b></div>
+                <div>تعداد اقلام داخل بسته: <b>@Fmt.Num(Model.Items.Sum(x => x.Quantity)) عدد</b></div>
+                <div>وضعیت مالی: <b>@Model.Status.Label()</b></div>
+                <div class="barcode">
+                    ||| |||| | ||| |||| |||<br />
+                    <span style="font-size:13px;letter-spacing:1px">@Model.Code</span>
+                </div>
+            </div>
+
+            <div class="lbl-sec">
+                <span class="lbl-tag" style="background:#ef394e">گیرنده مرسوله</span>
+                <div style="font-size:16px">نام گیرنده: <b>@Model.CustomerName</b></div>
+                <div style="font-size:15px">تلفن همراه: <b dir="ltr" style="font-size:16px">@Fmt.Fa(Model.Phone)</b></div>
+                <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px;margin-top:4px;line-height:2">
+                    <b>نشانی دقیق پستی:</b><br />
+                    @Model.Address
+                </div>
+            </div>
+        </div>
+        <div class="lbl-foot">
+            <span>📦 محتویات با احتیاط حمل شود — شکستنی</span>
+            <span>تاریخ صدور برچسب: @Fmt.Date(DateTime.UtcNow)</span>
+            <span dir="ltr">Order ID: @Model.Code</span>
+        </div>
+    </section>
+</div>
+
+<script>
+    (function () {
+        var btns = document.querySelectorAll('.mode-btn');
+        btns.forEach(function (b) {
+            b.addEventListener('click', function () {
+                document.body.setAttribute('data-mode', b.dataset.m);
+                btns.forEach(function (x) { x.classList.remove('on'); });
+                b.classList.add('on');
+            });
+        });
+    })();
+</script>
+</body>
+</html>

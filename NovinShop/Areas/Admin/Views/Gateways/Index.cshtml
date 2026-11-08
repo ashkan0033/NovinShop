@@ -1,0 +1,94 @@
+@model List<PaymentGateway>
+@{
+    ViewData["Title"] = "ماژول‌های پرداخت و درگاه‌ها";
+}
+<div class="bar">
+    <h2>💳 ماژول‌های پرداخت و درگاه‌ها</h2>
+</div>
+<p class="hint" style="margin-bottom:18px;font-size:13.5px">
+    از این بخش می‌توانید درگاه‌های پرداخت آنلاین (زرین‌پال)، روش کارت به کارت با ارسال فیش و درگاه آزمایشی را فعال، غیرفعال یا پیکربندی کنید.
+    هر ماژولی که فعال باشد، در صفحه‌ی تسویه‌حساب به مشتری نمایش داده می‌شود.
+</p>
+
+@foreach (var g in Model)
+{
+    var badgeIcon = g.Key == "zarinpal" ? "🟢" : g.Key == "card_to_card" ? "💳" : "🧪";
+    <form asp-action="Save" method="post" class="card form">
+        <input type="hidden" name="id" value="@g.Id" />
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+            <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:24px">@badgeIcon</span>
+                <div>
+                    <b style="font-size:16px">@g.Title</b>
+                    <small class="hint" style="margin:0" dir="ltr">Module Key: @g.Key</small>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px">
+                <label class="chk">
+                    <input type="checkbox" name="isEnabled" value="true" checked="@g.IsEnabled" />
+                    <span>فعال در صفحه پرداخت</span>
+                </label>
+                <span class="badge @(g.IsEnabled ? "ok" : "off")">@(g.IsEnabled ? "فعال" : "غیرفعال")</span>
+            </div>
+        </div>
+
+        <div class="g2">
+            <div class="fg">
+                <label>عنوان نمایشی به مشتری</label>
+                <input type="text" name="title" value="@g.Title" required />
+            </div>
+            <div class="fg">
+                <label>ترتیب نمایش</label>
+                <input type="number" name="sortOrder" value="@g.SortOrder" />
+            </div>
+        </div>
+
+        <div class="fg">
+            <label>توضیح کوتاه برای مشتری (زیر عنوان روش پرداخت)</label>
+            <input type="text" name="description" value="@g.Description" placeholder="مثال: پرداخت آنی با کلیه کارت‌های عضو شتاب" />
+        </div>
+
+        @if (g.Key == "zarinpal")
+        {
+            <div class="g2" style="background:var(--card2);padding:16px;border-radius:14px;margin-bottom:16px">
+                <div class="fg" style="margin:0">
+                    <label>کد درگاه زرین‌پال (Merchant ID — ۳۶ کاراکتر)</label>
+                    <input type="text" name="merchantId" value="@g.MerchantId" dir="ltr" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+                    <span class="hint">در حالت آزمایشی (Sandbox) می‌توانید از یک UUID دلخواه ۳۶ کاراکتری استفاده کنید.</span>
+                </div>
+                <div class="fg" style="margin:0;display:flex;flex-direction:column;justify-content:center">
+                    <label class="chk" style="margin-top:16px">
+                        <input type="checkbox" name="isSandbox" value="true" checked="@g.IsSandbox" />
+                        <span>حالت آزمایشی (Sandbox زرین‌پال)</span>
+                    </label>
+                    <span class="hint">برای اتصال به درگاه واقعی زرین‌پال (`payment.zarinpal.com`)، تیک حالت آزمایشی را بردارید.</span>
+                </div>
+            </div>
+        }
+        else if (g.Key == "card_to_card")
+        {
+            <div style="background:var(--card2);padding:16px;border-radius:14px;margin-bottom:16px">
+                <div class="g2">
+                    <div class="fg">
+                        <label>شماره کارت مقصد (۱۶ رقم)</label>
+                        <input type="text" name="cardNumber" value="@g.CardNumber" dir="ltr" placeholder="6037-9975-0000-0000" />
+                    </div>
+                    <div class="fg">
+                        <label>نام صاحب حساب</label>
+                        <input type="text" name="cardHolder" value="@g.CardHolder" placeholder="مثال: علی محمدی" />
+                    </div>
+                    <div class="fg" style="margin-bottom:0">
+                        <label>نام بانک</label>
+                        <input type="text" name="bankName" value="@g.BankName" placeholder="مثال: بانک ملی ایران" />
+                    </div>
+                    <div class="fg" style="margin-bottom:0">
+                        <label>شماره شبا (اختیاری)</label>
+                        <input type="text" name="shebaNumber" value="@g.ShebaNumber" dir="ltr" placeholder="IR000000000000000000000000" />
+                    </div>
+                </div>
+            </div>
+        }
+
+        <button class="btn pri" type="submit">ذخیره تنظیمات «@g.Title»</button>
+    </form>
+}

@@ -1,0 +1,56 @@
+@model Product
+@{
+    var off = Model.OldPrice is > 0 ? (int)Math.Round((1 - (double)Model.Price / Model.OldPrice.Value) * 100) : 0;
+}
+<article class="pc">
+    <a class="pc-link" asp-controller="Shop" asp-action="Details" asp-route-slug="@Model.Slug">
+        <div class="pic">
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+                <img src="@Model.ImagePath" alt="@Model.Name" loading="lazy" />
+            }
+            else
+            {
+                <div class="ph" style="--h:@(Model.Id * 47 % 360)"><span>@Fmt.ProductIcon(Model)</span></div>
+            }
+            @if (off > 0)
+            {
+                <span class="off">@Fmt.Num(off)٪</span>
+            }
+            @if (Model.Stock == 0)
+            {
+                <span class="sold">ناموجود</span>
+            }
+        </div>
+        <div class="info">
+            @if (Model.Category is not null)
+            {
+                <span class="pc-cat-lbl">@Model.Category.Name</span>
+            }
+            <h3>@Model.Name</h3>
+        </div>
+    </a>
+    <div class="pc-foot">
+        <div class="price">
+            @if (off > 0)
+            {
+                <div class="p-old"><s>@Fmt.Num(Model.OldPrice!.Value)</s></div>
+            }
+            <div class="p-now">@Fmt.Num(Model.Price)<small>تومان</small></div>
+        </div>
+        @if (Model.Stock > 0)
+        {
+            <form asp-controller="Cart" asp-action="Add" method="post" class="pc-cart-form">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+                <button class="pc-sq-btn" type="submit" title="افزودن به سبد خرید" aria-label="افزودن به سبد خرید">
+                    <svg class="i"><use href="#i-cart"/></svg>
+                </button>
+            </form>
+        }
+        else
+        {
+            <span class="pc-sq-out" title="ناموجود">ناموجود</span>
+        }
+    </div>
+</article>

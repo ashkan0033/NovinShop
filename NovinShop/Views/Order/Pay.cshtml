@@ -1,0 +1,130 @@
+@model Order
+@{
+    ViewData["Title"] = "پرداخت سفارش | نوین‌شاپ";
+    var gateways = (List<PaymentGateway>)ViewBag.Gateways;
+    var activeKey = Model.PaymentMethod ?? gateways.FirstOrDefault()?.Key ?? "card_to_card";
+    var activeGw = gateways.FirstOrDefault(g => g.Key == activeKey) ?? gateways.FirstOrDefault();
+}
+<div class="crumb"><a href="/">خانه</a> <span>/</span> <a href="/order/@Model.Code">سفارش @Model.Code</a> <span>/</span> <b>پرداخت</b></div>
+
+<div class="box" style="max-width:680px;margin:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding-bottom:14px;border-bottom:1px solid var(--line)">
+        <div>
+            <h1 style="margin:0;font-size:21px">پرداخت سفارش <span dir="ltr">@Model.Code</span></h1>
+            <small style="color:var(--muted)">مشتری: @Model.CustomerName</small>
+        </div>
+        <div style="text-align:left">
+            <small style="color:var(--muted);display:block">مبلغ قابل پرداخت</small>
+            <b style="font-size:22px;color:var(--primary)">@Fmt.Toman(Model.Total)</b>
+            @if (Model.DiscountAmount > 0)
+            {
+                <small style="display:block;color:var(--green);font-weight:700">با کسر @Fmt.Toman(Model.DiscountAmount) تخفیف (@Model.CouponCode)</small>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.AdminNote))
+    {
+        <div class="alert er" style="margin-top:14px">
+            <b>پیام مدیریت درباره‌ی فیش قبلی:</b> @Model.AdminNote
+        </div>
+    }
+
+    @if (gateways.Count > 1)
+    {
+        <div style="margin:18px 0">
+            <label style="display:block;font-weight:700;font-size:13.5px;margin-bottom:8px">روش پرداخت را انتخاب کنید:</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                @foreach (var g in gateways)
+                {
+                    var ic = g.Key == "zarinpal" ? "🟢" : g.Key == "card_to_card" ? "💳" : "🧪";
+                    var isOn = activeGw?.Key == g.Key;
+                    <a class="btn @(isOn ? "pri" : "")" href="/pay/@Model.Code?method=@g.Key" style="flex:1;min-width:170px">
+                        <span>@ic</span> <span>@g.Title</span>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
+    @if (activeGw is null)
+    {
+        <div class="alert er">در حال حاضر هیچ درگاه پرداختی فعال نیست.</div>
+    }
+    else if (activeGw.Key == "zarinpal")
+    {
+        <div style="background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:24px;text-align:center;margin-top:16px">
+            <div style="font-size:44px;margin-bottom:6px">🟢</div>
+            <h3 style="margin:0 0 6px">@activeGw.Title @(activeGw.IsSandbox ? "(حالت آزمایشی Sandbox)" : "")</h3>
+            <p style="color:var(--muted);margin:0 0 18px;font-size:13.5px">
+                @(activeGw.Description ?? "با کلیک روی دکمه‌ی زیر، به درگاه امن بانکی زرین‌پال منتقل می‌شوید و پس از پرداخت، سفارش شما به‌صورت خودکار تأیید می‌شود.")
+            </p>
+            <form asp-controller="Order" asp-action="StartZarinpal" asp-route-code="@Model.Code" method="post">
+                <button class="btn pri" type="submit" style="padding:13px 32px;font-size:15px">
+                    <svg class="i"><use href="#i-card"/></svg> اتصال به درگاه زرین‌پال و پرداخت @Fmt.Toman(Model.Total)
+                </button>
+            </form>
+        </div>
+    }
+    else if (activeGw.Key == "card_to_card")
+    {
+        <div style="background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:22px;margin-top:16px">
+            <h3 style="margin:0 0 10px;display:flex;align-items:center;gap:8px">💳 راهنمای پرداخت کارت به کارت</h3>
+            <p style="color:var(--muted);margin:0 0 14px;font-size:13.5px">
+                لطفاً مبلغ <b>@Fmt.Toman(Model.Total)</b> را به شماره کارت زیر واریز نمایید و سپس تصویر فیش یا اسکرین‌شات واریز را در فرم زیر بارگذاری کنید:
+            </p>
+
+            <div style="background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border-radius:16px;padding:20px;margin-bottom:18px;box-shadow:var(--sh)">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;opacity:.85;margin-bottom:10px">
+                    <span>@(string.IsNullOrWhiteSpace(activeGw.BankName) ? "کارت بانکی" : activeGw.BankName)</span>
+                    <span>کارت به کارت</span>
+                </div>
+                <div dir="ltr" style="font-size:22px;font-weight:700;letter-spacing:2px;text-align:center;margin:10px 0">
+                    @(string.IsNullOrWhiteSpace(activeGw.CardNumber) ? "6037 - 9975 - 0000 - 0000" : activeGw.CardNumber)
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:13.5px;margin-top:12px">
+                    <span>به نام: <b>@(string.IsNullOrWhiteSpace(activeGw.CardHolder) ? "مدیریت فروشگاه" : activeGw.CardHolder)</b></span>
+                    @if (!string.IsNullOrWhiteSpace(activeGw.ShebaNumber))
+                    {
+                        <span dir="ltr" style="font-size:12px;opacity:.85">@activeGw.ShebaNumber</span>
+                    }
+                </div>
+            </div>
+
+            <form asp-controller="Order" asp-action="SubmitReceipt" asp-route-code="@Model.Code" method="post" enctype="multipart/form-data" class="form">
+                <div class="fg">
+                    <label>تصویر فیش واریزی یا اسکرین‌شات تراکنش (الزامی)</label>
+                    <input type="file" name="receiptImage" accept=".jpg,.jpeg,.png,.webp" required />
+                    <span class="hint">فرمت‌های مجاز: JPG، PNG، WebP (حداکثر ۳ مگابایت)</span>
+                </div>
+                <div class="fg">
+                    <label>شماره پیگیری / ۴ رقم آخر کارت شما / توضیحات (اختیاری)</label>
+                    <input type="text" name="receiptNote" placeholder="مثال: کد پیگیری ۱۲۳۴۵۶ — واریز از کارت ۶۰۳۷...۱۲۳۴" />
+                </div>
+                <button class="btn pri" type="submit" style="width:100%;padding:13px">
+                    📤 ثبت فیش واریزی برای بررسی و تأیید
+                </button>
+            </form>
+        </div>
+    }
+    else if (activeGw.Key == "simulator")
+    {
+        <div style="background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:24px;text-align:center;margin-top:16px">
+            <div style="font-size:42px;margin-bottom:6px">🧪</div>
+            <h3 style="margin:0 0 6px">@activeGw.Title</h3>
+            <p style="color:var(--muted);margin:0 0 18px;font-size:13.5px">
+                این شبیه‌ساز برای تست سریع فرآیند خرید در دمو است و بدون جابه‌جایی وجه واقعی، وضعیت سفارش را تغییر می‌دهد.
+            </p>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+                <form asp-controller="Order" asp-action="Pay" asp-route-code="@Model.Code" method="post">
+                    <input type="hidden" name="success" value="true" />
+                    <button class="btn pri" type="submit">✅ شبیه‌سازی پرداخت موفق</button>
+                </form>
+                <form asp-controller="Order" asp-action="Pay" asp-route-code="@Model.Code" method="post">
+                    <input type="hidden" name="success" value="false" />
+                    <button class="btn" type="submit" style="color:var(--red)">❌ شبیه‌سازی انصراف / خطا</button>
+                </form>
+            </div>
+        </div>
+    }
+</div>

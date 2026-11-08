@@ -1,0 +1,99 @@
+@model List<Coupon>
+@{
+    ViewData["Title"] = "کدهای تخفیف و کوپن‌ها";
+    var now = DateTime.UtcNow;
+}
+<div class="bar">
+    <div>
+        <h2 style="margin:0">مدیریت کدهای تخفیف (@Fmt.Num(Model.Count))</h2>
+        <small style="color:var(--muted)">ایجاد کوپن‌های تخفیف درصدی یا مبلغ ثابت با سقف استفاده و حداقل خرید</small>
+    </div>
+    <a class="btn pri" asp-action="Create">+ کد تخفیف جدید</a>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden">
+    <table class="t">
+        <thead>
+            <tr>
+                <th>کد تخفیف</th>
+                <th>عنوان</th>
+                <th>مقدار تخفیف</th>
+                <th>حداقل سفارش</th>
+                <th>میزان استفاده</th>
+                <th>انقضا</th>
+                <th>وضعیت</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (!Model.Any())
+        {
+            <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">هیچ کد تخفیفی ثبت نشده است.</td></tr>
+        }
+        @foreach (var c in Model)
+        {
+            var expired = c.ExpiresAt is not null && c.ExpiresAt.Value < now;
+            var full = c.UsageLimit is not null && c.UsedCount >= c.UsageLimit.Value;
+            <tr>
+                <td><b dir="ltr" style="font-family:monospace;font-size:14px;background:var(--card2);padding:4px 10px;border-radius:8px;border:1px dashed var(--line)">@c.Code</b></td>
+                <td><b>@c.Title</b></td>
+                <td>
+                    @if (c.IsPercent)
+                    {
+                        <span class="badge ok">@Fmt.Num(c.Value)٪ تخفیف</span>
+                        @if (c.MaxDiscount is > 0)
+                        {
+                            <small style="display:block;color:var(--muted);margin-top:3px">سقف: @Fmt.Toman(c.MaxDiscount.Value)</small>
+                        }
+                    }
+                    else
+                    {
+                        <span class="badge ship">@Fmt.Toman(c.Value)</span>
+                    }
+                </td>
+                <td>@(c.MinOrderAmount > 0 ? Fmt.Toman(c.MinOrderAmount) : "بدون محدودیت")</td>
+                <td>
+                    <b>@Fmt.Num(c.UsedCount)</b> / @(c.UsageLimit is null ? "∞" : Fmt.Num(c.UsageLimit.Value))
+                </td>
+                <td>
+                    @if (c.ExpiresAt is null)
+                    {
+                        <span style="color:var(--muted)">دائمی</span>
+                    }
+                    else
+                    {
+                        <span style="color:@(expired ? "var(--red)" : "var(--text)")">@Fmt.Date(c.ExpiresAt.Value)</span>
+                    }
+                </td>
+                <td>
+                    @if (!c.IsActive)
+                    {
+                        <span class="badge off">غیرفعال</span>
+                    }
+                    else if (expired)
+                    {
+                        <span class="badge wait">منقضی‌شده</span>
+                    }
+                    else if (full)
+                    {
+                        <span class="badge wait">تکمیل ظرفیت</span>
+                    }
+                    else
+                    {
+                        <span class="badge ok">فعال</span>
+                    }
+                </td>
+                <td>
+                    <a class="btn sm" asp-action="Edit" asp-route-id="@c.Id">ویرایش</a>
+                    <form asp-action="Toggle" asp-route-id="@c.Id" method="post">
+                        <button class="btn sm" type="submit">@(c.IsActive ? "غیرفعال" : "فعال")</button>
+                    </form>
+                    <form asp-action="Delete" asp-route-id="@c.Id" method="post" onsubmit="return confirm('کد تخفیف @c.Code حذف شود؟')">
+                        <button class="btn sm dan" type="submit">حذف</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

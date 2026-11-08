@@ -1,0 +1,81 @@
+@model Coupon
+@{
+    var isEdit = Model.Id > 0;
+    ViewData["Title"] = isEdit ? $"ویرایش کد تخفیف {Model.Code}" : "افزودن کد تخفیف جدید";
+}
+<div class="bar">
+    <h2>@ViewData["Title"]</h2>
+    <a class="btn" asp-action="Index">بازگشت به لیست</a>
+</div>
+
+<form method="post" class="card form" style="max-width:760px">
+    <div asp-validation-summary="All" class="err" style="margin-bottom:12px"></div>
+
+    <div class="g2">
+        <div class="fg">
+            <label asp-for="Code">کد تخفیف (حروف لاتین و اعداد)</label>
+            <input asp-for="Code" dir="ltr" placeholder="مثال: WELCOME15" style="text-transform:uppercase;font-family:monospace;font-weight:700" />
+            <small class="hint">مشتری این عبارت را در سبد خرید یا صفحه پرداخت وارد می‌کند.</small>
+        </div>
+        <div class="fg">
+            <label asp-for="Title">عنوان نمایشی کوپن</label>
+            <input asp-for="Title" placeholder="مثال: تخفیف ۱۵٪ خوش‌آمدگویی" />
+        </div>
+    </div>
+
+    <div class="g3">
+        <div class="fg">
+            <label asp-for="IsPercent">نوع محاسبه تخفیف</label>
+            <select asp-for="IsPercent" id="couponType">
+                <option value="true">درصدی (مثلاً ۱۵٪)</option>
+                <option value="false">مبلغ ثابت (تومان)</option>
+            </select>
+        </div>
+        <div class="fg">
+            <label asp-for="Value" id="valLabel">مقدار تخفیف (درصد یا تومان)</label>
+            <input asp-for="Value" type="number" min="1" dir="ltr" />
+        </div>
+        <div class="fg" id="maxDiscWrap">
+            <label asp-for="MaxDiscount">سقف تخفیف (تومان - اختیاری)</label>
+            <input asp-for="MaxDiscount" type="number" min="0" dir="ltr" placeholder="مثال: 300000" />
+            <small class="hint">فقط برای تخفیف‌های درصدی</small>
+        </div>
+    </div>
+
+    <div class="g3">
+        <div class="fg">
+            <label asp-for="MinOrderAmount">حداقل مبلغ سبد خرید (تومان)</label>
+            <input asp-for="MinOrderAmount" type="number" min="0" dir="ltr" placeholder="0 = بدون محدودیت" />
+        </div>
+        <div class="fg">
+            <label asp-for="UsageLimit">سقف تعداد کل استفاده (اختیاری)</label>
+            <input asp-for="UsageLimit" type="number" min="1" dir="ltr" placeholder="خالی = نامحدود" />
+        </div>
+        <div class="fg">
+            <label asp-for="ExpiresAt">تاریخ انقضا (میلادی - اختیاری)</label>
+            <input asp-for="ExpiresAt" type="datetime-local" dir="ltr" value="@(Model.ExpiresAt?.ToString("yyyy-MM-ddTHH:mm"))" />
+            <small class="hint">خالی بگذارید تا دائمی باشد</small>
+        </div>
+    </div>
+
+    <label class="chk" style="margin:12px 0 18px">
+        <input asp-for="IsActive" /> این کد تخفیف فعال و قابل استفاده باشد
+    </label>
+
+    <div style="display:flex;gap:10px">
+        <button class="btn pri" type="submit">ذخیره کد تخفیف</button>
+        <a class="btn" asp-action="Index">انصراف</a>
+    </div>
+</form>
+
+<script>
+    (function () {
+        var sel = document.getElementById('couponType'), wrap = document.getElementById('maxDiscWrap');
+        function sync() {
+            var isPct = sel.value === 'true';
+            wrap.style.opacity = isPct ? '1' : '0.45';
+        }
+        sel.addEventListener('change', sync);
+        sync();
+    })();
+</script>

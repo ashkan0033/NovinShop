@@ -1,0 +1,25 @@
+@model List<ContentPage>
+@{ ViewData["Title"] = "صفحه‌های سایت"; }
+<div class="bar"><h2>صفحه‌های سایت</h2><a class="btn pri" asp-action="Create">+ صفحه‌ی جدید</a></div>
+<div class="card">
+    <table class="t">
+        <thead><tr><th>عنوان</th><th>آدرس</th><th>فوتر</th><th>ترتیب</th><th>وضعیت</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Title</td>
+                <td dir="ltr" style="text-align:right"><a href="/page/@p.Slug" target="_blank">/page/@p.Slug</a></td>
+                <td>@(p.ShowInFooter ? "بله" : "خیر")</td>
+                <td>@p.SortOrder</td>
+                <td><span class="badge @(p.IsActive ? "ok" : "off")">@(p.IsActive ? "فعال" : "غیرفعال")</span></td>
+                <td class="act">
+                    <a class="btn sm" asp-action="Edit" asp-route-id="@p.Id">ویرایش</a>
+                    <form asp-action="Delete" asp-route-id="@p.Id" method="post" onsubmit="return confirm('این صفحه حذف شود؟')"><button class="btn sm dan" type="submit">حذف</button></form>
+                </td>
+            </tr>
+        }
+        @if (!Model.Any()) { <tr><td colspan="6" style="text-align:center;color:#667085">صفحه‌ای ثبت نشده است</td></tr> }
+        </tbody>
+    </table>
+</div>

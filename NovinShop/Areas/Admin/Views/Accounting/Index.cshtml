@@ -1,0 +1,233 @@
+@model NovinShop.Areas.Admin.Controllers.AccountingDashboardViewModel
+@{
+    ViewData["Title"] = "حسابداری، سود و زیان و تراز مالی فروشگاه";
+    var netSalesAfterDisc = Math.Max(0, Model.TotalGrossSales - Model.TotalDiscountsGiven);
+    var marginPct = netSalesAfterDisc > 0 ? Math.Round(Model.GrossSalesProfit * 100.0 / netSalesAfterDisc, 1) : 0;
+}
+<div class="bar">
+    <div>
+        <h2 style="margin:0">📊 حسابداری جامع فروشگاه (دخل و خرج، بهای تمام‌شده و سود خالص)</h2>
+        <small style="color:var(--muted)">محاسبه دقیق بهای خرید کالاها، فروش خالص، سود هر سفارش، هزینه‌های جاری و تراز نهایی</small>
+    </div>
+    <a class="btn" asp-controller="Inventory" asp-action="Index">📦 ورود به انبارداری</a>
+</div>
+
+<!-- ردیف اول: شاخص‌های اصلی فروش و سود -->
+<div class="stats">
+    <div class="stat c-blue">
+        <div class="s-ic"><svg class="i"><use href="#i-cart"/></svg></div>
+        <div>
+            <b>@Fmt.Toman(Model.TotalNetRevenue)</b>
+            <small>کل ورودی فروش سفارش‌ها (تخفیف داده‌شده: @Fmt.Toman(Model.TotalDiscountsGiven))</small>
+        </div>
+    </div>
+    <div class="stat c-orange">
+        <div class="s-ic"><svg class="i"><use href="#i-package"/></svg></div>
+        <div>
+            <b>@Fmt.Toman(Model.TotalCostOfGoodsSold)</b>
+            <small>بهای تمام‌شده کالای فروش‌رفته (COGS به قیمت خرید)</small>
+        </div>
+    </div>
+    <div class="stat c-green">
+        <div class="s-ic"><svg class="i"><use href="#i-star"/></svg></div>
+        <div>
+            <b>@Fmt.Toman(Model.GrossSalesProfit)</b>
+            <small>سود ناخالص فروش کالاها (حاشیه سود: @Fmt.Fa(marginPct.ToString("0.0"))٪)</small>
+        </div>
+    </div>
+    <div class="stat @(Model.NetFinalProfit >= 0 ? "c-violet" : "c-red warn")">
+        <div class="s-ic"><svg class="i"><use href="#i-card"/></svg></div>
+        <div>
+            <b>@Fmt.Toman(Model.NetFinalProfit)</b>
+            <small>سود خالص نهایی (پس از کسر هزینه‌های جاری و افزودن درآمدها)</small>
+        </div>
+    </div>
+</div>
+
+<!-- ردیف دوم: تراز انبار و دخل و خرج عملیاتی -->
+<div class="g2">
+    <div class="card">
+        <h3 class="sec">📦 تراز مالی انبار و سرمایه‌گذاری کالا</h3>
+        <div style="display:grid;gap:10px;font-size:13.5px">
+            <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--card2);border-radius:10px">
+                <span>کل سرمایه واردشده به انبار (خرید کالا تا امروز):</span>
+                <b>@Fmt.Toman(Model.TotalInventoryPurchased)</b>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--card2);border-radius:10px">
+                <span>ارزش موجودی فعلی انبار (به قیمت خرید):</span>
+                <b>@Fmt.Toman(Model.CurrentWarehouseCostVal)</b>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--card2);border-radius:10px">
+                <span>ارزش موجودی فعلی انبار (به قیمت فروش روی سایت):</span>
+                <b style="color:var(--blue)">@Fmt.Toman(Model.CurrentWarehouseSaleVal)</b>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#dcfce7;color:#166534;border-radius:10px;font-weight:700">
+                <span>سود نهفته در موجودی فعلی انبار (در صورت فروش کامل):</span>
+                <span>+@Fmt.Toman(Model.CurrentWarehouseSaleVal - Model.CurrentWarehouseCostVal)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="sec">⚖️ صورت سود و زیان (تراز دخل و خرج فروشگاه)</h3>
+        <div style="display:grid;gap:10px;font-size:13.5px">
+            <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--card2);border-radius:10px">
+                <span>۱. فروش خالص کالاها (پس از کسر تخفیف کوپن):</span>
+                <b style="color:var(--green)">+@Fmt.Toman(netSalesAfterDisc)</b>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--card2);border-radius:10px">
+                <span>۲. کسر بهای خرید کالاهای فروش‌رفته (COGS):</span>
+                <b style="color:#e11d48">−@Fmt.Toman(Model.TotalCostOfGoodsSold)</b>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--card2);border-radius:10px">
+                <span>۳. سایر درآمدهای ثبت‌شده (+ دخل) / هزینه‌های جاری (− خرج):</span>
+                <b>
+                    <span style="color:var(--green)">+@Fmt.Toman(Model.ExtraIncome)</span> /
+                    <span style="color:#e11d48">−@Fmt.Toman(Model.OperatingExpenses)</span>
+                </b>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--side);color:#fff;border-radius:10px;font-weight:700;font-size:14.5px">
+                <span>تراز خالص سود فروشگاه:</span>
+                <span>@Fmt.Toman(Model.NetFinalProfit)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- فرم ثبت سند جدید دخل و خرج -->
+<form asp-action="AddEntry" method="post" class="card form">
+    <h3 class="sec">➕ ثبت سند جدید دخل و خرج (درآمد یا هزینه جاری فروشگاه)</h3>
+    <div class="g2">
+        <div class="fg">
+            <label>نوع سند مالی</label>
+            <select name="type">
+                <option value="@AccountingEntryType.Expense">🔴 خرج / هزینه (اجاره، تبلیغات، بسته‌بندی، حقوق و...)</option>
+                <option value="@AccountingEntryType.Income">🟢 دخل / درآمد جانبی (خدمات، همکاری در فروش و...)</option>
+            </select>
+        </div>
+        <div class="fg">
+            <label>دسته‌بندی حسابداری</label>
+            <select name="category">
+                <option value="تبلیغات و بازاریابی">📢 تبلیغات و بازاریابی</option>
+                <option value="بسته‌بندی و ارسال مرسولات">📦 بسته‌بندی و ارسال مرسولات</option>
+                <option value="حقوق و دستمزد پرسنل">👥 حقوق و دستمزد پرسنل</option>
+                <option value="اجاره، قبوض و نگهداری سرور">🏢 اجاره، قبوض و نگهداری سرور</option>
+                <option value="خرید و تأمین کالا (ورودی انبار)">🛒 خرید و تأمین کالا (ورودی انبار)</option>
+                <option value="درآمد خدمات و متفرقه">💰 درآمد خدمات و متفرقه</option>
+                <option value="سایر هزینه‌ها">📋 سایر هزینه‌ها</option>
+            </select>
+        </div>
+    </div>
+    <div class="g2">
+        <div class="fg">
+            <label>شرح سند مالی *</label>
+            <input type="text" name="title" required placeholder="مثال: خرید کارتن پستی و چسب پهن / کمپین تبلیغاتی" />
+        </div>
+        <div class="fg">
+            <label>مبلغ (تومان) *</label>
+            <input type="number" name="amount" min="1000" required dir="ltr" placeholder="مثال: 1500000" />
+        </div>
+    </div>
+    <div class="g2">
+        <div class="fg">
+            <label>شماره فاکتور / سند پیگیری (اختیاری)</label>
+            <input type="text" name="reference" placeholder="مثال: سند ۴۰۵" />
+        </div>
+        <div class="fg">
+            <label>توضیحات تکمیلی (اختیاری)</label>
+            <input type="text" name="note" placeholder="توضیحات حسابدار..." />
+        </div>
+    </div>
+    <button class="btn pri" type="submit">ثبت در دفتر روزنامه حسابداری</button>
+</form>
+
+<!-- جدول سودآوری به تفکیک هر سفارش پرداخت‌شده -->
+<div class="card">
+    <h3 class="sec">🧾 ریز سودآوری سفارش‌های فروش‌رفته (قیمت خرید در برابر قیمت فروش)</h3>
+    <table class="t">
+        <thead>
+            <tr>
+                <th>کد سفارش</th>
+                <th>مشتری</th>
+                <th>تاریخ</th>
+                <th>جمع فروش کالاها</th>
+                <th>تخفیف کوپن</th>
+                <th>بهای خرید کالاها (COGS)</th>
+                <th>سود خالص این سفارش</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (!Model.RecentPaidOrders.Any())
+        {
+            <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted)">هنوز سفارش پرداخت‌شده‌ای ثبت نشده است.</td></tr>
+        }
+        @foreach (var row in Model.RecentPaidOrders)
+        {
+            var o = row.Order;
+            <tr>
+                <td dir="ltr" style="text-align:right"><b>@o.Code</b></td>
+                <td>@o.CustomerName</td>
+                <td>@Fmt.Date(o.CreatedAt)</td>
+                <td>@Fmt.Toman(o.Subtotal)</td>
+                <td>@(o.DiscountAmount > 0 ? "−" + Fmt.Toman(o.DiscountAmount) : "—")</td>
+                <td style="color:var(--muted)">@Fmt.Toman(row.TotalCostOfGoods)</td>
+                <td style="font-weight:700;color:@(row.GrossProfit >= 0 ? "var(--green)" : "#e11d48")">
+                    @(row.GrossProfit >= 0 ? "+" + Fmt.Toman(row.GrossProfit) : Fmt.Toman(row.GrossProfit))
+                </td>
+                <td class="act">
+                    <a class="btn sm" asp-controller="Orders" asp-action="Details" asp-route-id="@o.Id">جزئیات سفارش</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<!-- دفتر روزنامه اسناد دخل و خرج -->
+<div class="card">
+    <h3 class="sec">📒 دفتر روزنامه اسناد دخل و خرج</h3>
+    <table class="t">
+        <thead>
+            <tr>
+                <th>تاریخ</th>
+                <th>نوع</th>
+                <th>دسته‌بندی</th>
+                <th>شرح سند</th>
+                <th>مبلغ</th>
+                <th>شماره سند</th>
+                <th>ثبت‌کننده</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (!Model.Entries.Any())
+        {
+            <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted)">هنوز سند دخل و خرجی ثبت نشده است.</td></tr>
+        }
+        @foreach (var e in Model.Entries)
+        {
+            var isInc = e.Type == AccountingEntryType.Income;
+            <tr>
+                <td>@Fmt.Date(e.CreatedAt)</td>
+                <td><span class="badge @(isInc ? "ok" : "wait")">@(isInc ? "دخل (درآمد)" : "خرج (هزینه)")</span></td>
+                <td>@e.Category</td>
+                <td>
+                    <b>@e.Title</b>
+                    @if (!string.IsNullOrEmpty(e.Note)) { <small class="hint">@e.Note</small> }
+                </td>
+                <td style="font-weight:700;color:@(isInc ? "var(--green)" : "#e11d48")">
+                    @(isInc ? "+" : "−")@Fmt.Toman(e.Amount)
+                </td>
+                <td>@(e.Reference ?? "—")</td>
+                <td><small style="color:var(--muted)">@e.CreatedBy</small></td>
+                <td class="act">
+                    <form asp-action="DeleteEntry" asp-route-id="@e.Id" method="post" onsubmit="return confirm('این سند مالی حذف شود؟')">
+                        <button class="btn sm dan" type="submit">حذف</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

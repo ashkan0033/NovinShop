@@ -1,0 +1,10 @@
+@model TrackForm
+@{ ViewData["Robots"] = "noindex,follow"; }
+<div class="crumb"><a href="/">خانه</a> / پیگیری سفارش</div>
+<form asp-controller="Order" asp-action="Track" method="post" class="box form" style="max-width:480px;margin:auto">
+    <h2 style="margin-top:0">پیگیری سفارش</h2>
+    <div asp-validation-summary="ModelOnly" class="err" style="margin-bottom:10px"></div>
+    <div class="fg"><label asp-for="Code">کد پیگیری</label><input asp-for="Code" dir="ltr" placeholder="NS-XXXXXXXX" /></div>
+    <div class="fg"><label asp-for="Phone">شماره موبایل ثبت‌شده در سفارش</label><input asp-for="Phone" dir="ltr" inputmode="numeric" placeholder="09123456789" /></div>
+    <button class="btn pri" style="width:100%" type="submit">مشاهده‌ی سفارش</button>
+</form>

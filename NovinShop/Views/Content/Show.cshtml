@@ -1,0 +1,12 @@
+@model ContentPage
+@section Head {
+    <style>
+        .content{line-height:2.1;max-width:820px}.content h2{margin:22px 0 8px}.content h3{margin:18px 0 6px;color:var(--primary)}
+        .content ul{padding-right:22px}.content a{color:var(--primary);text-decoration:underline}
+    </style>
+}
+<div class="crumb"><a href="/">خانه</a> / @Model.Title</div>
+<div class="box">
+    <h1 style="margin-top:0;font-size:24px">@Model.Title</h1>
+    <div class="content">@Html.Raw(ContentRenderer.ToHtml(Model.Content))</div>
+</div>

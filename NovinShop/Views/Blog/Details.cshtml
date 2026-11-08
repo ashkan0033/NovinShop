@@ -1,0 +1,103 @@
+@model BlogPost
+@inject SiteSettings Site
+@{
+    ViewData["Title"] = Model.Title + " | مجله " + Site.Get("site.name");
+    ViewData["Description"] = Model.Summary ?? Model.Title;
+    var (day, month) = Fmt.ShamsiDayMonth(Model.CreatedAt);
+    var related = ViewBag.Related as List<BlogPost> ?? new();
+    var suggestedProducts = ViewBag.SuggestedProducts as List<Product> ?? new();
+    var bg = !string.IsNullOrEmpty(Model.ImagePath)
+        ? $"background-image:linear-gradient(180deg,rgba(15,23,42,.35),rgba(15,23,42,.88)),url({Model.ImagePath});background-size:cover;background-position:center"
+        : $"background:{Model.Gradient}";
+}
+
+<nav class="crumb">
+    <a href="/">خانه</a> <span>/</span>
+    <a href="/blog">مجله و مقالات</a> <span>/</span>
+    <a href="/blog?cat=@Uri.EscapeDataString(Model.Category)">@Model.Category</a> <span>/</span>
+    <b>@Model.Title</b>
+</nav>
+
+<article class="blog-article-box">
+    <header class="blog-article-cover" style="@bg">
+        @if (string.IsNullOrEmpty(Model.ImagePath))
+        {
+            <div class="blog-cover-ic" aria-hidden="true">@Model.Icon</div>
+        }
+        <div class="blog-cover-content">
+            <span class="blog-post-cat" style="position:static;width:fit-content">@Model.Category</span>
+            <h1>@Model.Title</h1>
+            <div class="blog-cover-meta">
+                <span>📅 @day @month</span>
+                <span>•</span>
+                <span>⏱ مطالعه: @Fmt.Num(Model.ReadingMinutes) دقیقه</span>
+                <span>•</span>
+                <span>👁 @Fmt.Num(Model.ViewCount) بازدید</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="blog-article-body">
+        @if (!string.IsNullOrWhiteSpace(Model.Summary))
+        {
+            <div class="blog-lead">@Model.Summary</div>
+        }
+        <div class="desc-full">
+            @Html.Raw(Model.Content)
+        </div>
+    </div>
+</article>
+
+@if (related.Any())
+{
+    <section class="ns-sec">
+        <div class="ns-sec-head">
+            <h2 class="ns-sec-title">مقالات مرتبط</h2>
+            <a class="ns-see-all" href="/blog">
+                <span>همه مقالات</span>
+                <svg class="i"><use href="#i-left"/></svg>
+            </a>
+        </div>
+        <div class="rail-wrap">
+            <div class="rail ns-blog-rail">
+                @foreach (var p in related)
+                {
+                    var (rDay, rMonth) = Fmt.ShamsiDayMonth(p.CreatedAt);
+                    var rBg = !string.IsNullOrEmpty(p.ImagePath)
+                        ? $"background-image:url({p.ImagePath});background-size:cover;background-position:center"
+                        : $"background:{p.Gradient}";
+                    <a class="ns-blog-card" href="/blog/@p.Slug" style="@rBg">
+                        @if (string.IsNullOrEmpty(p.ImagePath))
+                        {
+                            <div class="ns-blog-art" aria-hidden="true">@p.Icon</div>
+                        }
+                        <div class="ns-blog-ov">
+                            <div class="ns-blog-date">
+                                <b>@rDay</b>
+                                <small>@rMonth</small>
+                            </div>
+                            <div class="ns-blog-info">
+                                <h3>@p.Title</h3>
+                                <span>@p.Category</span>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@if (suggestedProducts.Any())
+{
+    <section class="ns-sec">
+        <div class="ns-sec-head">
+            <h2 class="ns-sec-title">محصولات پیشنهادی مرتبط</h2>
+            <a class="ns-see-all" href="/products">
+                <span>دیدن همه</span>
+                <svg class="i"><use href="#i-left"/></svg>
+            </a>
+        </div>
+        <partial name="_Rail" model="suggestedProducts" />
+    </section>
+}

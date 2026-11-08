@@ -1,0 +1,67 @@
+@model List<BlogPost>
+@{
+    ViewData["Title"] = "مدیریت مقالات و وبلاگ";
+}
+<div class="bar">
+    <div>
+        <h2>📰 مقالات و مجله فروشگاه (@Fmt.Num(Model.Count))</h2>
+        <small style="color:var(--muted)">مدیریت مطالب آموزشی، بررسی محصولات و مقالات سئو</small>
+    </div>
+    <a class="btn pri" asp-action="Create">+ افزودن مقاله جدید</a>
+</div>
+
+<form class="filters" method="get">
+    <input type="text" name="q" value="@ViewBag.Q" placeholder="جستجو در عنوان یا دسته‌بندی مقاله..." />
+    <button class="btn pri" type="submit">جستجو</button>
+    @if (!string.IsNullOrEmpty(ViewBag.Q as string))
+    {
+        <a class="btn" asp-action="Index">پاک کردن</a>
+    }
+</form>
+
+<div class="card">
+    <table class="t">
+        <thead>
+            <tr>
+                <th>آیکون</th>
+                <th>عنوان مقاله</th>
+                <th>دسته‌بندی</th>
+                <th>زمان مطالعه</th>
+                <th>بازدید</th>
+                <th>وضعیت</th>
+                <th>تاریخ</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (!Model.Any())
+        {
+            <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">مقاله‌ای یافت نشد.</td></tr>
+        }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td><span class="th" style="background:@item.Gradient;color:#fff">@item.Icon</span></td>
+                <td>
+                    <b>@item.Title</b>
+                    <div style="font-size:11.5px;color:var(--muted)"><code>/blog/@item.Slug</code></div>
+                </td>
+                <td><span class="badge ship">@item.Category</span></td>
+                <td>@Fmt.Num(item.ReadingMinutes) دقیقه</td>
+                <td>@Fmt.Num(item.ViewCount)</td>
+                <td>
+                    <span class="badge @(item.IsPublished ? "ok" : "off")">@(item.IsPublished ? "منتشرشده" : "پیش‌نویس")</span>
+                </td>
+                <td>@Fmt.Date(item.CreatedAt)</td>
+                <td class="act">
+                    <a class="btn sm" href="/blog/@item.Slug" target="_blank">مشاهده ↗</a>
+                    <a class="btn sm" asp-action="Edit" asp-route-id="@item.Id">ویرایش</a>
+                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('این مقاله حذف شود؟')">
+                        <button class="btn sm dan" type="submit">حذف</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,27 @@
+@model ContentPage
+@{
+    var isNew = Model.Id == 0;
+    ViewData["Title"] = isNew ? "صفحه‌ی جدید" : "ویرایش صفحه";
+}
+<div class="bar"><h2>@ViewData["Title"]</h2><a class="btn" asp-action="Index">بازگشت</a></div>
+<form asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@Model.Id" method="post" class="form">
+    <div asp-validation-summary="ModelOnly" class="err"></div>
+    <div class="card">
+        <h3 class="sec">محتوا</h3>
+        <div class="fg"><label asp-for="Title">عنوان صفحه</label><input asp-for="Title" /><span asp-validation-for="Title"></span></div>
+        <div class="fg"><label asp-for="Content">متن صفحه</label><textarea asp-for="Content" rows="14"></textarea>
+            <span class="hint">قالب‌بندی: <code dir="ltr"># تیتر بزرگ</code> — <code dir="ltr">## تیتر کوچک</code> — <code dir="ltr">- مورد لیست</code> — <code dir="ltr">**پررنگ**</code> — <code dir="ltr">[متن لینک](https://...)</code> — یک خط خالی = پاراگراف جدید</span></div>
+        <div class="g2">
+            <div class="fg"><label asp-for="SortOrder">ترتیب نمایش</label><input asp-for="SortOrder" /></div>
+        </div>
+        <label class="chk"><input asp-for="IsActive" /> فعال</label><br />
+        <label class="chk"><input asp-for="ShowInFooter" /> نمایش لینک در فوتر سایت</label>
+    </div>
+    <div class="card">
+        <h3 class="sec">🔎 سئو</h3>
+        <div class="fg"><label asp-for="Slug">آدرس صفحه (slug)</label><input asp-for="Slug" dir="ltr" /><span class="hint">خالی بگذارید تا از روی عنوان ساخته شود</span><span asp-validation-for="Slug"></span></div>
+        <div class="fg"><label asp-for="SeoTitle">عنوان سئو</label><input asp-for="SeoTitle" data-max="70" /><span asp-validation-for="SeoTitle"></span></div>
+        <div class="fg"><label asp-for="SeoDescription">توضیحات سئو</label><textarea asp-for="SeoDescription" rows="2" data-max="170"></textarea><span asp-validation-for="SeoDescription"></span></div>
+    </div>
+    <button class="btn pri" type="submit">ذخیره</button>
+</form>

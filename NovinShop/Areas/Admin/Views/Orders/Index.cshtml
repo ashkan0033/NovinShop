@@ -1,0 +1,48 @@
+@model OrderListViewModel
+@{ ViewData["Title"] = "سفارش‌ها"; }
+<div class="bar"><h2>سفارش‌ها <small style="color:#667085;font-weight:400">(@Fmt.Num(Model.Total) مورد)</small></h2></div>
+
+<form method="get" class="filters">
+    <input name="q" value="@Model.Q" placeholder="کد پیگیری، نام یا موبایل..." />
+    <select name="status">
+        <option value="">همه‌ی وضعیت‌ها</option>
+        @foreach (var s in Enum.GetValues<OrderStatus>()) { <option value="@s" selected="@(Model.Status == s)">@s.Label()</option> }
+    </select>
+    <button class="btn" type="submit">اعمال فیلتر</button>
+</form>
+
+<div class="card">
+    <table class="t">
+        <thead><tr><th>کد</th><th>مشتری</th><th>موبایل</th><th>مبلغ</th><th>روش پرداخت</th><th>وضعیت</th><th>تاریخ</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var o in Model.Items)
+        {
+            <tr>
+                <td dir="ltr" style="text-align:right">@o.Code</td>
+                <td>@o.CustomerName</td>
+                <td dir="ltr" style="text-align:right">@o.Phone</td>
+                <td>@Fmt.Toman(o.Total)</td>
+                <td>
+                    @OrderStatusInfo.MethodLabel(o.PaymentMethod)
+                    @if (!string.IsNullOrEmpty(o.ReceiptImagePath)) { <span title="دارای تصویر فیش">🧾</span> }
+                </td>
+                <td><span class="badge @o.Status.Css()">@o.Status.Label()</span></td>
+                <td>@Fmt.Date(o.CreatedAt)</td>
+                <td>
+                    <a class="btn sm" asp-action="Details" asp-route-id="@o.Id">جزئیات</a>
+                    <a class="btn sm" asp-action="Invoice" asp-route-id="@o.Id" asp-route-mode="both" target="_blank" title="چاپ فاکتور و برچسب پستی">🖨️ فاکتور</a>
+                </td>
+            </tr>
+        }
+        @if (!Model.Items.Any()) { <tr><td colspan="8" style="text-align:center;color:#667085">سفارشی پیدا نشد</td></tr> }
+        </tbody>
+    </table>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pager">
+            @if (Model.Page > 1) { <a class="btn sm" asp-action="Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-page="@(Model.Page - 1)">قبلی</a> }
+            <span>صفحه @Fmt.Num(Model.Page) از @Fmt.Num(Model.TotalPages)</span>
+            @if (Model.Page < Model.TotalPages) { <a class="btn sm" asp-action="Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-page="@(Model.Page + 1)">بعدی</a> }
+        </div>
+    }
+</div>

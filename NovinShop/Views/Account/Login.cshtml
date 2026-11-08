@@ -1,0 +1,64 @@
+@model NovinShop.Models.LoginViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject NovinShop.Services.SiteSettings Site
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>ورود به پنل مدیریت</title>
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <style>
+        body{display:grid;grid-template-columns:1fr 1fr;place-items:stretch;min-height:100vh;background:var(--card)}
+        .l-art{background:linear-gradient(135deg,#ef394e,#ff8a1f);color:#fff;display:flex;flex-direction:column;justify-content:center;padding:60px;position:relative;overflow:hidden}
+        .l-art:before{content:"";position:absolute;width:420px;height:420px;border-radius:50%;background:#ffffff14;left:-120px;bottom:-140px}
+        .l-art h2{font-size:30px;margin:16px 0 8px}.l-art p{opacity:.9;max-width:420px}
+        .l-form{display:grid;place-items:center;padding:30px}
+        .box{width:min(400px,100%)}
+        .box h1{margin:0 0 4px;font-size:24px}.box p{margin:0 0 24px;color:var(--muted)}
+        .box label{display:block;margin:14px 0 6px;font-size:13px;font-weight:700}
+        .box input[type=email],.box input[type=password],.box input[type=text]{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--card2)}
+        .box input:focus{outline:0;border-color:var(--pri);background:var(--card)}
+        .chk{display:flex;gap:8px;align-items:center;margin:16px 0;font-size:13px}
+        .box button{width:100%;justify-content:center;padding:13px}
+        @@media(max-width:800px){body{grid-template-columns:1fr}.l-art{display:none}}
+    </style>
+</head>
+<body>
+<div class="l-art">
+    <span class="brand-mark" style="width:56px;height:56px;background:#ffffff26"><svg class="i" viewBox="0 0 24 24" style="width:28px;height:28px"><path d="m21 8-9-5-9 5v8l9 5 9-5zM3.3 7 12 12l8.7-5M12 22V12"/></svg></span>
+    <h2>@Site.Get("site.name")</h2>
+    <p>مدیریت محصولات، سفارش‌ها، بنرها و تنظیمات فروشگاه از یک پنل یکپارچه.</p>
+</div>
+<div class="l-form">
+    <form asp-action="Login" method="post" class="box">
+        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+        <h1>ورود به پنل مدیریت</h1>
+        <p>برای ادامه، ایمیل و رمز عبور خود را وارد کنید.</p>
+        <div asp-validation-summary="ModelOnly" class="err"></div>
+
+        <label asp-for="Email">ایمیل</label>
+        <input asp-for="Email" dir="ltr" autofocus />
+        <span asp-validation-for="Email" class="err"></span>
+
+        <label asp-for="Password">رمز عبور</label>
+        <input asp-for="Password" dir="ltr" />
+        <span asp-validation-for="Password" class="err"></span>
+
+        <div class="chk"><input asp-for="RememberMe" /><span>مرا به خاطر بسپار</span></div>
+        <button class="btn pri" type="submit">ورود به پنل</button>
+
+        <div style="margin-top:18px;padding:12px 14px;border-radius:12px;background:var(--card2);border:1px dashed var(--line);font-size:12px;line-height:1.9">
+            <b style="display:block;margin-bottom:4px;color:var(--text)">🔑 حساب‌های نمونه جهت تست سطوح دسترسی:</b>
+            <div dir="ltr" style="text-align:left">👑 <b>admin@novinshop.local</b> / <code>Admin@12345</code></div>
+            <div dir="ltr" style="text-align:left">📦 <b>editor@novinshop.local</b> / <code>Staff@12345</code></div>
+            <div dir="ltr" style="text-align:left">📊 <b>accountant@novinshop.local</b> / <code>Staff@12345</code></div>
+        </div>
+
+        <a href="/" style="display:block;text-align:center;margin-top:16px;color:var(--muted);font-size:13px">← بازگشت به فروشگاه</a>
+    </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,150 @@
+@model List<NovinShop.Areas.Admin.Controllers.StaffUserRow>
+@{
+    ViewData["Title"] = "مدیران، کارمندان و سطوح دسترسی";
+    var myEmail = (string)(ViewBag.MyEmail ?? "");
+    var myId = (string)(ViewBag.MyId ?? "");
+}
+<div class="bar">
+    <div>
+        <h2>👥 مدیریت کاربران و سطوح دسترسی</h2>
+        <small style="color:var(--muted)">ویرایش ایمیل و رمز عبور مدیر کل + تعریف کارمند محصولات (ویرایشگر) و حسابدار</small>
+    </div>
+</div>
+
+<!-- کارت‌های راهنمای نقش‌ها -->
+<div class="role-cards-grid">
+    <div class="role-info-card">
+        <div class="ric-head">
+            <span class="badge ok">مدیر کل (Admin)</span>
+        </div>
+        <p>دسترسی کامل به تمام بخش‌های فروشگاه، درگاه‌های پرداخت، تنظیمات سایت، حسابداری و مدیریت کارمندان.</p>
+    </div>
+    <div class="role-info-card">
+        <div class="ric-head">
+            <span class="badge ship">کارمند کاتالوگ و محتوا (Editor)</span>
+        </div>
+        <p>دسترسی به محصولات، دسته‌بندی‌ها، انبارداری، دیدگاه‌ها، مقالات وبلاگ، بنرها، صفحه‌ها و سئو.</p>
+    </div>
+    <div class="role-info-card">
+        <div class="ric-head">
+            <span class="badge wait">حسابدار و سفارش‌ها (Accountant)</span>
+        </div>
+        <p>دسترسی به سفارش‌ها، تأیید فیش‌های کارت‌به‌کارت، کدهای تخفیف، انبارداری و سیستم حسابداری مالی.</p>
+    </div>
+</div>
+
+<div class="admin-split-2">
+    <!-- ۱) پروفایل و اطلاعات ورود خودِ ادمین کل -->
+    <form asp-action="UpdateMyProfile" method="post" class="card form">
+        <h3 class="sec">🔐 اطلاعات ورود حساب شما (مدیر کل)</h3>
+        <div class="fg">
+            <label>ایمیل ورود شما (نام کاربری)</label>
+            <input type="email" name="newEmail" value="@myEmail" dir="ltr" required />
+        </div>
+        <div class="g2">
+            <div class="fg">
+                <label>رمز عبور فعلی (در صورت تغییر رمز)</label>
+                <input type="password" name="currentPassword" dir="ltr" placeholder="••••••••" />
+            </div>
+            <div class="fg">
+                <label>رمز عبور جدید (اختیاری)</label>
+                <input type="password" name="newPassword" dir="ltr" placeholder="مثال: Admin@12345" />
+            </div>
+        </div>
+        <small class="hint" style="margin-bottom:14px">اگر فقط قصد تغییر ایمیل خود را دارید، فیلدهای رمز عبور را خالی بگذارید.</small>
+        <div class="form-foot-right">
+            <button class="btn pri" type="submit">💾 ذخیره ایمیل و رمز عبور من</button>
+        </div>
+    </form>
+
+    <!-- ۲) افزودن کارمند / کاربر جدید -->
+    <form asp-action="CreateStaff" method="post" class="card form">
+        <h3 class="sec">➕ تعریف کارمند / اپراتور جدید</h3>
+        <div class="g2">
+            <div class="fg">
+                <label>ایمیل ورود کارمند</label>
+                <input type="email" name="email" dir="ltr" required placeholder="editor@novinshop.local" />
+            </div>
+            <div class="fg">
+                <label>رمز عبور اولیه</label>
+                <input type="text" name="password" dir="ltr" required placeholder="مثال: Staff@12345" />
+            </div>
+        </div>
+        <div class="fg">
+            <label>نقش و سطح دسترسی در پنل</label>
+            <select name="role">
+                <option value="@AppRoles.Editor">📦 کارمند محصولات و محتوا (ویرایشگر)</option>
+                <option value="@AppRoles.Accountant">📊 حسابدار و مسئول سفارش‌ها</option>
+                <option value="@AppRoles.Admin">👑 مدیر کل (دسترسی کامل)</option>
+            </select>
+        </div>
+        <small class="hint" style="margin-bottom:14px">رمز عبور باید حداقل ۸ کاراکتر و شامل حروف بزرگ، کوچک و عدد باشد.</small>
+        <div class="form-foot-right">
+            <button class="btn pri" type="submit">+ ایجاد حساب کارمند</button>
+        </div>
+    </form>
+</div>
+
+<!-- ۳) فهرست مدیران و کارمندان پنل -->
+<div class="card">
+    <h3 class="sec">فهرست مدیران و کارمندان پنل (@Fmt.Num(Model.Count) نفر)</h3>
+    <table class="t staff-table">
+        <thead>
+            <tr>
+                <th style="width:220px">کاربر</th>
+                <th style="width:170px">نقش فعلی</th>
+                <th>ویرایش ایمیل، سطح دسترسی و رمز عبور</th>
+                <th style="width:90px;text-align:left">حذف</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var u in Model)
+        {
+            var isMe = u.Id == myId;
+            <tr>
+                <td>
+                    <div class="staff-user-cell">
+                        <span class="staff-av">@(u.Email.Length > 0 ? u.Email[..1].ToUpperInvariant() : "U")</span>
+                        <div>
+                            <b dir="ltr" style="display:inline-block">@u.Email</b>
+                            @if (isMe)
+                            {
+                                <div><span class="badge ok" style="font-size:10.5px;padding:1px 8px">حساب فعلی شما</span></div>
+                            }
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge @AppRoles.BadgeCss(u.Role)">@AppRoles.Label(u.Role)</span>
+                </td>
+                <td>
+                    <form asp-action="UpdateStaff" method="post" class="staff-inline-form">
+                        <input type="hidden" name="id" value="@u.Id" />
+                        <input type="email" name="email" value="@u.Email" dir="ltr" title="ایمیل کاربر" required />
+                        <select name="role" title="سطح دسترسی">
+                            <option value="@AppRoles.Admin" selected="@(u.Role == AppRoles.Admin)">مدیر کل (Admin)</option>
+                            <option value="@AppRoles.Editor" selected="@(u.Role == AppRoles.Editor)">کارمند محصولات (Editor)</option>
+                            <option value="@AppRoles.Accountant" selected="@(u.Role == AppRoles.Accountant)">حسابدار (Accountant)</option>
+                        </select>
+                        <input type="text" name="newPassword" dir="ltr" placeholder="رمز جدید (اختیاری)" title="در صورت تمایل به تغییر رمز پر کنید" />
+                        <button class="btn sm pri" type="submit">ذخیره تغییرات</button>
+                    </form>
+                </td>
+                <td class="act">
+                    @if (!isMe)
+                    {
+                        <form asp-action="DeleteStaff" method="post" onsubmit="return confirm('حساب کاربری @u.Email حذف شود؟')">
+                            <input type="hidden" name="id" value="@u.Id" />
+                            <button class="btn sm dan" type="submit">حذف</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span style="font-size:11.5px;color:var(--muted)">—</span>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

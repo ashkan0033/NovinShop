@@ -1,0 +1,111 @@
+@model Order
+@{
+    ViewData["Title"] = "سفارش " + Model.Code;
+    var next = Model.Status switch
+    {
+        OrderStatus.PendingPayment => new[] { OrderStatus.Paid, OrderStatus.Cancelled },
+        OrderStatus.PendingApproval => new[] { OrderStatus.Paid, OrderStatus.Cancelled },
+        OrderStatus.Paid => new[] { OrderStatus.Shipped, OrderStatus.Cancelled },
+        _ => Array.Empty<OrderStatus>()
+    };
+}
+<div class="bar">
+    <h2>سفارش <span dir="ltr">@Model.Code</span> <span class="badge @Model.Status.Css()">@Model.Status.Label()</span></h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn" asp-action="Invoice" asp-route-id="@Model.Id" asp-route-mode="invoice" target="_blank">🖨️ چاپ فاکتور رسمی</a>
+        <a class="btn" asp-action="Invoice" asp-route-id="@Model.Id" asp-route-mode="label" target="_blank">📦 چاپ برچسب پستی</a>
+        <a class="btn" asp-action="Index">بازگشت</a>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="sec">اطلاعات مشتری و پرداخت</h3>
+    <div style="line-height:2.1">
+        <b>@Model.CustomerName</b> — <span dir="ltr">@Model.Phone</span><br />
+        @Model.Address<br />
+        <span style="color:var(--muted)">
+            ثبت: @Fmt.Date(Model.CreatedAt)
+            • روش پرداخت: <b>@OrderStatusInfo.MethodLabel(Model.PaymentMethod)</b>
+            @if (Model.PaidAt is { } paid) { <text> • پرداخت: @Fmt.Date(paid) (@Model.PaymentRef)</text> }
+            @if (!string.IsNullOrEmpty(Model.Authority)) { <text> • کد Authority: <span dir="ltr">@Model.Authority</span></text> }
+        </span>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ReceiptImagePath))
+{
+    <div class="card">
+        <h3 class="sec">🧾 فیش واریزی کارت به کارت مشتری</h3>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+            <a href="@Model.ReceiptImagePath" target="_blank" title="مشاهده تصویر در ابعاد کامل">
+                <img src="@Model.ReceiptImagePath" alt="فیش واریزی" style="max-width:300px;max-height:380px;border-radius:14px;border:1px solid var(--line);object-fit:contain" />
+            </a>
+            <div style="flex:1;min-width:240px">
+                @if (!string.IsNullOrEmpty(Model.ReceiptNote))
+                {
+                    <p style="margin:0 0 12px"><b>توضیحات / کد پیگیری ثبت‌شده توسط مشتری:</b><br />@Model.ReceiptNote</p>
+                }
+                <p class="hint">برای بزرگ‌نمایی روی تصویر فیش کلیک کنید.</p>
+
+                @if (Model.Status == OrderStatus.PendingApproval)
+                {
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+                        <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post">
+                            <input type="hidden" name="status" value="@OrderStatus.Paid" />
+                            <button class="btn pri" type="submit">✅ تأیید فیش و ثبت به‌عنوان پرداخت‌شده</button>
+                        </form>
+                    </div>
+                    <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post" class="form" style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)">
+                        <input type="hidden" name="status" value="@OrderStatus.PendingPayment" />
+                        <div class="fg" style="margin-bottom:8px">
+                            <label>رد فیش و درخواست ارسال مجدد (علت رد را بنویسید):</label>
+                            <input type="text" name="adminNote" placeholder="مثال: تصویر فیش ناخوانا است یا مبلغ واریزی مطابقت ندارد" required />
+                        </div>
+                        <button class="btn dan" type="submit">↩ رد فیش (بازگشت به در انتظار پرداخت)</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<div class="card">
+    <h3 class="sec">اقلام سفارش</h3>
+    <table class="t">
+        <thead><tr><th>محصول</th><th>قیمت واحد</th><th>تعداد</th><th>جمع</th></tr></thead>
+        <tbody>
+        @foreach (var i in Model.Items)
+        {
+            <tr><td>@i.ProductName</td><td>@Fmt.Toman(i.UnitPrice)</td><td>@Fmt.Num(i.Quantity)</td><td>@Fmt.Toman(i.Total)</td></tr>
+        }
+        </tbody>
+    </table>
+    <div style="margin-top:14px;line-height:2.1">
+        جمع کالاها: @Fmt.Toman(Model.Subtotal)
+        @if (Model.DiscountAmount > 0)
+        {
+            <text> • تخفیف کوپن (<span dir="ltr">@Model.CouponCode</span>): <b style="color:var(--green)">−@Fmt.Toman(Model.DiscountAmount)</b></text>
+        }
+        • ارسال: @(Model.Shipping == 0 ? "رایگان" : Fmt.Toman(Model.Shipping))<br />
+        <b style="font-size:16px">مبلغ کل: @Fmt.Toman(Model.Total)</b>
+    </div>
+</div>
+
+@if (next.Length > 0)
+{
+    <div class="card">
+        <h3 class="sec">تغییر وضعیت سفارش</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+        @foreach (var s in next)
+        {
+            <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post"
+                  onsubmit="@(s == OrderStatus.Cancelled ? "return confirm('سفارش لغو شود و موجودی به انبار برگردد؟')" : "return true")">
+                <input type="hidden" name="status" value="@s" />
+                <button class="btn @(s == OrderStatus.Cancelled ? "dan" : "pri")" type="submit">
+                    @(s == OrderStatus.Cancelled ? "لغو سفارش (بازگشت موجودی)" : s == OrderStatus.Shipped ? "علامت‌گذاری به‌عنوان ارسال‌شده" : "✅ تأیید پرداخت")
+                </button>
+            </form>
+        }
+        </div>
+    </div>
+}

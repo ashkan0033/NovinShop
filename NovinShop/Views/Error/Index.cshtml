@@ -1,0 +1,13 @@
+@model int
+<div class="box" style="max-width:560px;margin:40px auto;text-align:center">
+    <div style="font-size:64px">@(Model == 404 ? "🔍" : "⚠️")</div>
+    <h1 style="font-size:24px">@(Model == 404 ? "صفحه‌ای که دنبالش بودید پیدا نشد" : "مشکلی پیش آمد")</h1>
+    <p style="color:var(--muted);line-height:2">
+        @(Model == 404 ? "ممکن است آدرس اشتباه باشد یا محصول دیگر موجود نباشد." : "لطفاً چند لحظه دیگر دوباره تلاش کنید.")
+    </p>
+    <form method="get" action="/products" style="display:flex;gap:8px;margin:18px 0" class="form">
+        <input name="q" placeholder="جستجوی محصول..." />
+        <button class="btn pri" type="submit">جستجو</button>
+    </form>
+    <a class="btn" href="/">بازگشت به صفحه‌ی اصلی</a>
+</div>

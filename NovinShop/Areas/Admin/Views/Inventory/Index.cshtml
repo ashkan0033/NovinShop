@@ -1,0 +1,212 @@
+@model NovinShop.Areas.Admin.Controllers.InventoryViewModel
+@{
+    ViewData["Title"] = "سیستم جامع انبارداری و کاردکس کالا";
+    var potentialProfit = Model.TotalSaleValue - Model.TotalCostValue;
+}
+<div class="bar">
+    <div>
+        <h2 style="margin:0">📦 انبارداری، حواله ورود کالا و کاردکس موجودی</h2>
+        <small style="color:var(--muted)">تمامی کالاها ابتدا با قیمت خرید وارد انبار می‌شوند و هنگام فروش در سایت به‌صورت خودکار از انبار کسر می‌گردند</small>
+    </div>
+</div>
+
+<!-- کارت‌های خلاصه وضعیت انبار -->
+<div class="stats">
+    <div class="stat c-blue">
+        <div class="s-ic"><svg class="i"><use href="#i-package"/></svg></div>
+        <div><b>@Fmt.Num(Model.TotalUnits) عدد</b><small>کل موجودی فیزیکی در انبار (@Fmt.Num(Model.Products.Count) تنوع کالا)</small></div>
+    </div>
+    <div class="stat c-orange">
+        <div class="s-ic"><svg class="i"><use href="#i-card"/></svg></div>
+        <div><b>@Fmt.Toman(Model.TotalCostValue)</b><small>ارزش انبار به قیمت خرید (سرمایه خوابیده)</small></div>
+    </div>
+    <div class="stat c-green">
+        <div class="s-ic"><svg class="i"><use href="#i-star"/></svg></div>
+        <div><b>@Fmt.Toman(Model.TotalSaleValue)</b><small>ارزش انبار به قیمت فروش (سود مورد انتظار: @Fmt.Toman(potentialProfit))</small></div>
+    </div>
+    <div class="stat c-red @(Model.LowStockCount > 0 ? "warn" : "")">
+        <div class="s-ic"><svg class="i"><use href="#i-flame"/></svg></div>
+        <div><b>@Fmt.Num(Model.LowStockCount) کالا</b><small>کالاهای کم‌موجود (۳ عدد یا کمتر) نیازمند شارژ</small></div>
+    </div>
+</div>
+
+<!-- فرم ثبت حواله ورود به انبار / ضایعات / انبارگردانی -->
+<form asp-action="RecordMovement" method="post" class="card form">
+    <h3 class="sec">➕ ثبت حواله انبار (ورود خرید جدید / کسر ضایعات / تعدیل انبارگردانی)</h3>
+    <div class="g2">
+        <div class="fg">
+            <label>انتخاب کالا *</label>
+            <select name="productId" id="invProdSelect" required>
+                <option value="">-- انتخاب محصول از کاتالوگ --</option>
+                @foreach (var p in Model.Products)
+                {
+                    var cost = p.CostPrice > 0 ? p.CostPrice : (int)Math.Round(p.Price * 0.72);
+                    <option value="@p.Id" data-cost="@cost" data-price="@p.Price" selected="@(Model.SelectedProductId == p.Id)">
+                        @p.Name — (موجودی فعلی: @Fmt.Num(p.Stock) عدد | فروش: @Fmt.Toman(p.Price))
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="fg">
+            <label>نوع عملیات انبار *</label>
+            <select name="type" id="invTypeSelect">
+                <option value="@InventoryTxType.StockIn">📥 ورود کالا به انبار (خرید / تأمین جدید — افزایش موجودی)</option>
+                <option value="@InventoryTxType.WasteOut">📤 خروج ضایعات / کسری انبار (کاهش موجودی)</option>
+                <option value="@InventoryTxType.ReturnIn">↩ برگشت کالا به انبار (افزایش موجودی)</option>
+                <option value="@InventoryTxType.Adjustment">⚖️ تعدیل انبارگردانی (مقدار + یا −)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="g2">
+        <div class="fg">
+            <label>تعداد (عدد) *</label>
+            <input type="number" name="qty" value="10" required dir="ltr" placeholder="مثال: 10" />
+        </div>
+        <div class="fg">
+            <label>قیمت خرید واحد (تومان — بهای تمام‌شده هر عدد) *</label>
+            <input type="number" name="unitCost" id="invUnitCost" value="0" min="0" required dir="ltr" placeholder="مثال: 850000" />
+            <small class="hint" id="profitHint">با وارد کردن قیمت خرید واحد، سود ناخالص هر کالا در بخش حسابداری به دقت محاسبه می‌شود.</small>
+        </div>
+    </div>
+
+    <div class="g2">
+        <div class="fg">
+            <label>شماره فاکتور خرید / نام تأمین‌کننده (اختیاری)</label>
+            <input type="text" name="reference" placeholder="مثال: فاکتور خرید ۱۲۴۰ — بازرگانی پارس" />
+        </div>
+        <div class="fg">
+            <label>توضیحات انباردار (اختیاری)</label>
+            <input type="text" name="note" placeholder="مثال: پارت جدید تحویل انبار مرکزی" />
+        </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:6px">
+        <label class="chk">
+            <input type="checkbox" name="recordInAccounting" value="true" checked />
+            در صورت «ورود کالا به انبار»، مبلغ کل فاکتور خرید به‌صورت خودکار در <b>خرج‌های حسابداری</b> نیز ثبت شود
+        </label>
+        <button class="btn pri" type="submit">ثبت حواله در انبار و بروزرسانی موجودی</button>
+    </div>
+</form>
+
+<!-- جدول موجودی و بهای تمام‌شده کالاها در انبار -->
+<div class="card">
+    <h3 class="sec">📋 فهرست موجودی کالاها، قیمت خرید، قیمت فروش و سود هر واحد</h3>
+    <table class="t">
+        <thead>
+            <tr>
+                <th>کد</th>
+                <th>نام کالا</th>
+                <th>دسته‌بندی</th>
+                <th>موجودی انبار</th>
+                <th>آخرین قیمت خرید واحد</th>
+                <th>قیمت فروش</th>
+                <th>سود ناخالص هر عدد</th>
+                <th>ارزش موجودی (به قیمت خرید)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in Model.Products)
+        {
+            var cost = p.CostPrice > 0 ? p.CostPrice : (int)Math.Round(p.Price * 0.72);
+            var unitProfit = p.Price - cost;
+            var totalCost = (long)p.Stock * cost;
+            <tr>
+                <td dir="ltr" style="text-align:right">NS-@Fmt.Num(p.Id)</td>
+                <td><b>@p.Name</b></td>
+                <td>@p.Category?.Name</td>
+                <td>
+                    <span class="badge @(p.Stock == 0 ? "er" : p.Stock <= 3 ? "wait" : "ok")">
+                        @Fmt.Num(p.Stock) عدد
+                    </span>
+                </td>
+                <td>@Fmt.Toman(cost)</td>
+                <td><b>@Fmt.Toman(p.Price)</b></td>
+                <td style="color:var(--green);font-weight:700">+@Fmt.Toman(unitProfit)</td>
+                <td>@Fmt.Toman(totalCost)</td>
+                <td class="act">
+                    <a class="btn sm" asp-action="Index" asp-route-productId="@p.Id">کاردکس</a>
+                    <a class="btn sm" asp-controller="Products" asp-action="Edit" asp-route-id="@p.Id">ویرایش کالا</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<!-- کاردکس گردش انبار -->
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 12px 6px">
+        <h3 class="sec" style="margin:0;padding:0">🔄 کاردکس گردش ورود و خروج انبار (آخرین ۶۰ تراکنش)</h3>
+        @if (Model.SelectedProductId is > 0 || Model.SelectedType is not null)
+        {
+            <a class="btn sm" asp-action="Index">نمایش همه‌ی تراکنش‌ها</a>
+        }
+    </div>
+    <table class="t">
+        <thead>
+            <tr>
+                <th>تاریخ و ساعت</th>
+                <th>کالا</th>
+                <th>نوع حواله</th>
+                <th>تغییر موجودی</th>
+                <th>موجودی پس از عملیات</th>
+                <th>قیمت خرید واحد</th>
+                <th>ارزش ریالی حواله</th>
+                <th>مرجع / سفارش / فاکتور</th>
+                <th>ثبت‌کننده</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (!Model.Transactions.Any())
+        {
+            <tr><td colspan="9" style="text-align:center;padding:28px;color:var(--muted)">هنوز تراکنشی در کاردکس ثبت نشده است.</td></tr>
+        }
+        @foreach (var t in Model.Transactions)
+        {
+            var isPlus = t.QuantityChange > 0;
+            <tr>
+                <td>@Fmt.Date(t.CreatedAt)</td>
+                <td><b>@(t.Product?.Name ?? $"کالا #{t.ProductId}")</b></td>
+                <td><span class="badge @t.Type.Css()">@t.Type.Label()</span></td>
+                <td dir="ltr" style="text-align:right;font-weight:700;color:@(isPlus ? "var(--green)" : "#e11d48")">
+                    @(isPlus ? "+" + Fmt.Num(t.QuantityChange) : "−" + Fmt.Num(Math.Abs(t.QuantityChange)))
+                </td>
+                <td><b>@Fmt.Num(t.StockAfter) عدد</b></td>
+                <td>@Fmt.Toman(t.UnitCost)</td>
+                <td><b>@Fmt.Toman(t.TotalCost)</b></td>
+                <td>
+                    @if (!string.IsNullOrEmpty(t.Reference))
+                    {
+                        <b dir="ltr">@t.Reference</b>
+                    }
+                    @if (!string.IsNullOrEmpty(t.Note))
+                    {
+                        <small class="hint">@t.Note</small>
+                    }
+                </td>
+                <td><small style="color:var(--muted)">@t.CreatedBy</small></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    (function () {
+        var sel = document.getElementById('invProdSelect');
+        var costInp = document.getElementById('invUnitCost');
+        function syncCost() {
+            var opt = sel.options[sel.selectedIndex];
+            if (opt && opt.dataset.cost) {
+                costInp.value = opt.dataset.cost;
+            }
+        }
+        if (sel && costInp) {
+            sel.addEventListener('change', syncCost);
+            syncCost();
+        }
+    })();
+</script>

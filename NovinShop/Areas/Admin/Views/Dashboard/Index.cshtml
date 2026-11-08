@@ -1,0 +1,75 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "داشبورد";
+    var paid = (int)ViewBag.PaidOrders;
+    var pending = (int)ViewBag.PendingOrders;
+    var receipts = (int)ViewBag.PendingReceipts;
+    var latest = (List<Order>)ViewBag.LatestOrders;
+    var low = (List<SeoItem>)ViewBag.LowStockList;
+    var chart = (List<(string Label, long Sum)>)ViewBag.Chart;
+    var max = Math.Max(1, chart.Max(c => c.Sum));
+    var weekSum = chart.Sum(c => c.Sum);
+}
+<div class="bar">
+    <h2>👋 خوش آمدید</h2>
+    <div style="display:flex;gap:8px">
+        <a class="btn" href="/" target="_blank"><svg class="i"><use href="#i-home"/></svg> مشاهده‌ی سایت</a>
+        <a class="btn pri" asp-controller="Products" asp-action="Create"><svg class="i"><use href="#i-plus"/></svg> محصول جدید</a>
+    </div>
+</div>
+
+<div class="stats">
+    <div class="stat c-green"><span class="s-ic"><svg class="i"><use href="#i-card"/></svg></span><div><b>@Fmt.Num((long)ViewBag.Revenue)</b><small>فروش کل (تومان)</small></div></div>
+    <a class="stat c-red @(paid > 0 ? "warn" : "")" asp-controller="Orders" asp-action="Index" asp-route-status="Paid"><span class="s-ic"><svg class="i"><use href="#i-truck"/></svg></span><div><b>@Fmt.Num(paid)</b><small>آماده‌ی ارسال</small></div></a>
+    <a class="stat c-orange @(receipts > 0 ? "warn" : "")" asp-controller="Orders" asp-action="Index" asp-route-status="PendingApproval"><span class="s-ic"><svg class="i"><use href="#i-clock"/></svg></span><div><b>@Fmt.Num(receipts)</b><small>فیش در انتظار تأیید</small></div></a>
+    <a class="stat c-blue" asp-controller="Products" asp-action="Index"><span class="s-ic"><svg class="i"><use href="#i-package"/></svg></span><div><b>@Fmt.Num(Model.Active) <small>از @Fmt.Num(Model.Products)</small></b><small>محصولات فعال</small></div></a>
+    <a class="stat c-violet" asp-controller="Gateways" asp-action="Index"><span class="s-ic"><svg class="i"><use href="#i-card"/></svg></span><div><b>درگاه‌ها</b><small>زرین‌پال و کارت به کارت</small></div></a>
+    <div class="stat c-gray @(Model.LowStock > 0 ? "warn" : "")"><span class="s-ic"><svg class="i"><use href="#i-bolt"/></svg></span><div><b>@Fmt.Num(Model.LowStock)</b><small>موجودی کم (۳ یا کمتر)</small></div></div>
+</div>
+
+<div class="dash-grid">
+    <div class="card">
+        <h3 class="sec">فروش ۷ روز اخیر <small style="color:var(--muted);font-weight:400;margin-inline-start:auto">جمع: @Fmt.Toman(weekSum)</small></h3>
+        <div class="chart">
+            @foreach (var c in chart)
+            {
+                <div class="col"><div class="bar-v" style="height:@(Math.Max(2, c.Sum * 100 / max))%" title="@Fmt.Toman(c.Sum)">@if (c.Sum > 0) { <span>@Fmt.Num(c.Sum / 1000)k</span> }</div></div>
+            }
+        </div>
+        <div class="chart-lbl">@foreach (var c in chart) { <span>@c.Label</span> }</div>
+    </div>
+    <div class="card">
+        <h3 class="sec">دسترسی سریع</h3>
+        <div class="quick">
+            <a asp-controller="Products" asp-action="Create"><svg class="i"><use href="#i-plus"/></svg> افزودن محصول</a>
+            <a asp-controller="Orders" asp-action="Index"><svg class="i"><use href="#i-cart"/></svg> مدیریت سفارش‌ها</a>
+            <a asp-controller="Banners" asp-action="Create"><svg class="i"><use href="#i-star"/></svg> بنر جدید</a>
+            <a asp-controller="Settings" asp-action="Index"><svg class="i"><use href="#i-sun"/></svg> تنظیمات سایت</a>
+        </div>
+    </div>
+</div>
+
+<div class="dash-grid">
+    <div class="card">
+        <h3 class="sec">آخرین سفارش‌ها <a class="btn sm" style="margin-inline-start:auto" asp-controller="Orders" asp-action="Index">همه</a></h3>
+        <table class="t">
+            <thead><tr><th>کد</th><th>مشتری</th><th>مبلغ</th><th>وضعیت</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var o in latest)
+            {
+                <tr><td dir="ltr" style="text-align:right">@o.Code</td><td>@o.CustomerName</td><td>@Fmt.Toman(o.Total)</td>
+                    <td><span class="badge @o.Status.Css()">@o.Status.Label()</span></td>
+                    <td><a class="btn sm" asp-controller="Orders" asp-action="Details" asp-route-id="@o.Id">جزئیات</a></td></tr>
+            }
+            @if (!latest.Any()) { <tr><td colspan="5" style="text-align:center;color:var(--muted)">هنوز سفارشی ثبت نشده</td></tr> }
+            </tbody>
+        </table>
+    </div>
+    <div class="card">
+        <h3 class="sec">⚠ موجودی رو به اتمام</h3>
+        <div class="low-list">
+            @foreach (var p in low) { <a asp-controller="Products" asp-action="Edit" asp-route-id="@p.Id"><span>@p.Name</span><svg class="i"><use href="#i-left"/></svg></a> }
+            @if (!low.Any()) { <div style="color:var(--muted);text-align:center;padding:20px">✓ موجودی همه‌ی محصولات کافی است</div> }
+        </div>
+    </div>
+</div>
