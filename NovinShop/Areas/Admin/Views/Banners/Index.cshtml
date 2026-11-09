@@ -9,7 +9,7 @@
         @foreach (var b in Model)
         {
             <tr>
-                <td>@if (b.ImagePath != null) { <img class="th" src="@b.ImagePath" alt="" /> } else { <div class="th">🖼️</div> }</td>
+                <td>@if (b.ImagePath != null) { <img class="th" src="@b.ImagePath" alt="" /> } else { <div class="th"></div> }</td>
                 <td>@b.Title</td>
                 <td dir="ltr" style="text-align:right">@b.LinkUrl</td>
                 <td>@b.SortOrder</td>

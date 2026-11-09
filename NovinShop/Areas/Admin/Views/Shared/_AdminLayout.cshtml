@@ -76,8 +76,8 @@
         </div>
     </header>
     <main>
-        @if (TempData["Ok"] is string okMsg) { <div class="alert ok">✓ @okMsg</div> }
-        @if (TempData["Err"] is string errMsg) { <div class="alert er">⚠ @errMsg</div> }
+        @if (TempData["Ok"] is string okMsg) { <div class="alert ok">@okMsg</div> }
+        @if (TempData["Err"] is string errMsg) { <div class="alert er">@errMsg</div> }
         @RenderBody()
     </main>
 </div>

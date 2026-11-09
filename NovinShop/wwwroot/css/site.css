@@ -2,19 +2,19 @@
 @font-face{font-family:Vazirmatn;src:local("Vazirmatn"),url(/fonts/Vazirmatn-Regular.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:Vazirmatn;src:local("Vazirmatn Bold"),url(/fonts/Vazirmatn-Bold.woff2) format("woff2");font-weight:700;font-display:swap}
 
-/* ===== متغیرهای سیستم طراحی نگارشاپ (روشن) ===== */
+/* ===== متغیرهای سیستم طراحی نگارشاپ (روشن — ملایم و چشم‌نواز بدون سفیدی زننده) ===== */
 :root{
- --bg:#F4F5F9;
- --card:#FFFFFF;
- --card2:#F3F4F6;
- --text:#1F2937;
- --muted:#6B7280;
- --line:#E5E7EB;
+ --bg:#EAEEF5;
+ --card:#FAFBFD;
+ --card2:#EFF3F8;
+ --text:#111827;
+ --muted:#64748B;
+ --line:#DCE2EC;
  --primary:#4F46E5;
  --p6:#3730A3;
- --p1:#EEF2FF;
- --red:#FF4B4B;
- --red-dark:#E03131;
+ --p1:#E8EDFF;
+ --red:#EF4444;
+ --red-dark:#DC2626;
  --cart-green:#16A34A;
  --cart-green-dark:#15803D;
  --orange:#F59E0B;
@@ -23,10 +23,10 @@
  --navy:#071330;
  --r:14px;
  --r-btn:9px;
- --sec-gap:44px;
+ --sec-gap:38px;
  --card-gap:14px;
- --sh:0 1px 3px rgba(15,23,42,.04);
- --sh2:0 10px 26px rgba(15,23,42,.09);
+ --sh:0 1px 3px rgba(15,23,42,.05),0 4px 12px rgba(15,23,42,.03);
+ --sh2:0 12px 28px rgba(15,23,42,.1);
 }
 
 /* ===== متغیرهای حالت تیره ===== */
@@ -45,7 +45,7 @@
 
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;overflow-x:clip}
-body{margin:0;font-family:Vazirmatn,IRANSans,Tahoma,sans-serif;background:var(--bg);color:var(--text);line-height:1.75;-webkit-text-size-adjust:100%;font-size:14px;overflow-x:clip}
+body{margin:0;font-family:Vazirmatn,IRANSans,Tahoma,sans-serif;background-color:var(--bg);background-image:radial-gradient(ellipse 90% 440px at 50% 0%,rgba(79,70,229,.06),transparent 70%);background-repeat:no-repeat;color:var(--text);line-height:1.75;-webkit-text-size-adjust:100%;font-size:14px;overflow-x:clip}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 h1,h2,h3,h4{line-height:1.55;color:inherit;margin:0}
@@ -166,13 +166,14 @@ main{min-height:65vh;padding-bottom:36px}
 .ns-hero-ghost{display:inline-flex;align-items:center;padding:10px 18px;border-radius:24px;border:1px solid rgba(255,255,255,.32);color:#fff;font-size:13px;font-weight:700;transition:.2s}
 .ns-hero-ghost:hover{background:rgba(255,255,255,.12)}
 .ns-hero-art{flex:1;display:flex;justify-content:center;align-items:center}
-.ns-art-stage{display:flex;gap:12px;align-items:center;padding:14px;background:rgba(255,255,255,.05);border:1.5px solid rgba(251,191,36,.45);border-radius:20px;backdrop-filter:blur(8px)}
-.ns-art-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;color:#fff;min-width:128px;transition:.25s}
-.ns-art-card:hover{transform:translateY(-4px);background:rgba(255,255,255,.16)}
-.ns-art-card span{font-size:34px;margin-bottom:6px;line-height:1}
-.ns-art-card b{font-size:12px;color:#fff;margin-bottom:2px}
+.ns-art-stage{display:flex;gap:12px;align-items:center;padding:14px;background:rgba(15,23,42,.45);border:1px solid rgba(255,255,255,.18);border-radius:18px;backdrop-filter:blur(10px)}
+.ns-art-card{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:10px 12px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;color:#fff;width:136px;transition:.25s}
+.ns-art-card:hover{transform:translateY(-4px);background:rgba(255,255,255,.15)}
+.ns-art-card img{width:100%;height:78px;object-fit:cover;border-radius:9px;margin-bottom:8px;border:1px solid rgba(255,255,255,.15)}
+.ns-art-card span{font-size:32px;margin-bottom:6px;line-height:1}
+.ns-art-card b{font-size:11.5px;color:#fff;margin-bottom:2px;white-space:nowrap}
 .ns-art-card small{font-size:10.5px;color:#fde68a;font-weight:700}
-.ns-hero-en{display:flex;flex-direction:column;align-items:flex-end;color:rgba(255,255,255,.18);font-family:system-ui,sans-serif;line-height:1.15;user-select:none}
+.ns-hero-en{display:flex;flex-direction:column;align-items:flex-end;color:rgba(255,255,255,.16);font-family:system-ui,sans-serif;line-height:1.15;user-select:none}
 .ns-hero-en span{font-size:22px;font-weight:300}
 .ns-hero-en b{font-size:74px;font-weight:200;margin-top:4px;line-height:1}
 .sl-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer;z-index:3;transition:.15s;backdrop-filter:blur(4px)}
@@ -185,19 +186,22 @@ main{min-height:65vh;padding-bottom:36px}
 /* ═══════════════════════════════════════════════════
    ۳. دسته‌بندی‌های کارتی ۶ تایی
    ═══════════════════════════════════════════════════ */
-.ns-cats-sec{margin:32px 0}
+.ns-cats-sec{margin:28px 0}
 .ns-cats-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--card-gap)}
-.ns-cat-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 12px 14px;display:flex;flex-direction:column;align-items:center;text-align:center;transition:.2s}
+.ns-cat-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 12px 14px;display:flex;flex-direction:column;align-items:center;text-align:center;transition:.2s;box-shadow:var(--sh)}
 .ns-cat-card:hover{transform:translateY(-3px);border-color:var(--primary);box-shadow:var(--sh2)}
-.ns-cat-pic{width:64px;height:64px;border-radius:14px;background:var(--card2);display:grid;place-items:center;font-size:32px;margin-bottom:10px;transition:.2s}
-.ns-cat-card:hover .ns-cat-pic{background:var(--p1);transform:scale(1.05)}
+.ns-cat-pic{width:68px;height:68px;border-radius:16px;background:var(--card2);display:grid;place-items:center;font-size:28px;margin-bottom:10px;transition:.2s;overflow:hidden;border:1px solid var(--line)}
+.ns-cat-pic img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.ns-cat-ic{font-style:normal}
+.ns-cat-card:hover .ns-cat-pic{border-color:var(--primary)}
+.ns-cat-card:hover .ns-cat-pic img{transform:scale(1.08)}
 .ns-cat-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
 .ns-cat-count{font-size:11px;color:var(--muted)}
 
 /* ═══════════════════════════════════════════════════
    ۴. باکس قرمز «تخفیف‌های شگفت‌انگیز»
    ═══════════════════════════════════════════════════ */
-.ns-offer-box{display:grid;grid-template-columns:230px 1fr;gap:18px;background:var(--red);border-radius:16px;padding:20px;margin:var(--sec-gap) 0;align-items:center}
+.ns-offer-box{display:grid;grid-template-columns:230px 1fr;gap:18px;background:linear-gradient(135deg,#DC2626 0%,#E11D48 55%,#BE123C 100%);border-radius:18px;padding:20px;margin:var(--sec-gap) 0;align-items:center;box-shadow:0 12px 30px rgba(225,29,72,.2)}
 .ns-offer-side{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:8px 6px}
 .ns-offer-side h2{font-size:20px;font-weight:700;color:#fff !important;margin-bottom:4px}
 .ns-offer-side p{font-size:12px;color:rgba(255,255,255,.9) !important;margin:0 0 14px}
@@ -224,11 +228,11 @@ main{min-height:65vh;padding-bottom:36px}
    ۵. ردیف بنرهای تبلیغاتی ۳ تایی
    ═══════════════════════════════════════════════════ */
 .ns-promo-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--card-gap);margin:var(--sec-gap) 0}
-.ns-p3-card{border-radius:var(--r);padding:20px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#fff;min-height:132px;position:relative;overflow:hidden;transition:.2s}
+.ns-p3-card{border-radius:var(--r);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;color:#fff;min-height:136px;position:relative;overflow:hidden;transition:.2s;box-shadow:var(--sh)}
 .ns-p3-card:hover{transform:translateY(-3px);box-shadow:var(--sh2)}
-.p3-blue{background:linear-gradient(135deg,#1d4ed8,#2563eb)}
+.p3-blue{background:linear-gradient(135deg,#1e3a8a,#2563eb)}
 .p3-gaming{background:linear-gradient(135deg,#0f0728,#3b0764 60%,#1e1b4b)}
-.p3-dark{background:linear-gradient(135deg,#090d16,#1e293b)}
+.p3-dark{background:linear-gradient(135deg,#0f172a,#1e293b)}
 .ns-p3-txt{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .ns-p3-badge{background:rgba(255,255,255,.2);padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700}
 .ns-p3-txt h3{font-size:15px;font-weight:700;color:#fff}
@@ -236,18 +240,21 @@ main{min-height:65vh;padding-bottom:36px}
 .ns-p3-btn{display:inline-block;background:#fff;color:#1e293b;padding:4px 14px;border-radius:7px;font-size:11.5px;font-weight:700}
 .p3-btn-red{background:var(--red);color:#fff}
 .p3-btn-cyan{background:#0284c7;color:#fff}
-.ns-p3-art{font-size:48px;font-weight:700;color:#fbbf24;line-height:1;opacity:.92;user-select:none}
-.p3-art-neon{font-size:24px;letter-spacing:2px;color:#f43f5e;text-shadow:0 0 14px #f43f5e}
+.ns-p3-thumb{width:88px;height:88px;border-radius:14px;overflow:hidden;flex:none;border:1.5px solid rgba(255,255,255,.22);box-shadow:0 8px 20px rgba(0,0,0,.28);display:grid;place-items:center;background:rgba(255,255,255,.08)}
+.ns-p3-thumb img{width:100%;height:100%;object-fit:cover}
+.ns-p3-art{font-size:38px;font-weight:700;color:#fbbf24;line-height:1;opacity:.92;user-select:none}
+.p3-art-neon{font-size:18px;letter-spacing:1.5px;color:#f43f5e;text-shadow:0 0 14px #f43f5e}
 
 /* ═══════════════════════════════════════════════════
    ۶. بخش‌های اسلایدر محصولات (۵ کارت در دید) و کارت محصول نگارشاپ
    ═══════════════════════════════════════════════════ */
-.ns-sec{margin:var(--sec-gap) 0}
-.ns-sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px}
-.ns-sec-title{font-size:17px;font-weight:700;color:var(--text)}
-.ns-see-all{display:inline-flex;align-items:center;gap:4px;background:#E5E7EB;color:var(--text);padding:5px 13px;border-radius:8px;font-size:12px;font-weight:700;transition:.15s}
-[data-theme=dark] .ns-see-all{background:var(--card2)}
-.ns-see-all:hover{background:var(--primary);color:#fff}
+.ns-sec{margin:var(--sec-gap) 0;background:rgba(250,251,253,.78);border:1px solid var(--line);border-radius:18px;padding:20px 20px 14px;box-shadow:var(--sh)}
+[data-theme=dark] .ns-sec{background:rgba(19,27,46,.65)}
+.ns-sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line);gap:12px}
+.ns-sec-title{font-size:16.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:9px}
+.ns-sec-title:before{content:"";width:4px;height:18px;border-radius:4px;background:var(--primary)}
+.ns-see-all{display:inline-flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--line);color:var(--text);padding:5px 13px;border-radius:8px;font-size:12px;font-weight:700;transition:.15s}
+.ns-see-all:hover{background:var(--primary);border-color:var(--primary);color:#fff}
 .ns-see-all .i{width:14px;height:14px}
 
 .rail-wrap{position:relative}
@@ -255,29 +262,29 @@ main{min-height:65vh;padding-bottom:36px}
 .rail::-webkit-scrollbar{display:none}
 .rail.dragging{cursor:grabbing;scroll-snap-type:none;user-select:none}
 /* ۵ کارت در دید در دسکتاپ */
-.rail>.pc{flex:0 0 calc((100% - (4 * var(--card-gap))) / 5);min-width:205px;scroll-snap-align:start}
+.rail>.pc{flex:0 0 calc((100% - (4 * var(--card-gap))) / 5);min-width:200px;scroll-snap-align:start}
 .rail-btn{position:absolute;top:42%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:var(--card);color:var(--text);border:1px solid var(--line);box-shadow:0 4px 12px rgba(15,23,42,.12);display:grid;place-items:center;cursor:pointer;z-index:3;transition:.15s}
 .rail-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
-.rail-btn.prev{right:-14px}.rail-btn.next{left:-14px}
+.rail-btn.prev{right:-12px}.rail-btn.next{left:-12px}
 .rail-btn .i{width:16px;height:16px}
 
 /* کارت محصول استاندارد نگارشاپ */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:var(--card-gap)}
-.pc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;justify-content:space-between;transition:.2s;position:relative}
+.pc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:11px;display:flex;flex-direction:column;justify-content:space-between;transition:.2s;position:relative;box-shadow:var(--sh)}
 .pc:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--primary) 45%,var(--line));box-shadow:var(--sh2)}
 .pc-link{display:flex;flex-direction:column;flex:1}
-.pic{aspect-ratio:1/1;position:relative;background:var(--card2);border-radius:10px;overflow:hidden;margin-bottom:10px;display:grid;place-items:center}
-.pic img{width:100%;height:100%;object-fit:contain;padding:8px;transition:transform .35s}
-.pc:hover .pic img{transform:scale(1.05)}
-.ph{height:100%;width:100%;display:grid;place-items:center;font-size:52px;background:var(--card2)}
-.off{position:absolute;top:8px;right:8px;background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:1px 8px;border-radius:12px;z-index:1}
+.pic{aspect-ratio:1/1;position:relative;background:var(--card2);border-radius:10px;overflow:hidden;margin-bottom:10px;display:grid;place-items:center;border:1px solid rgba(15,23,42,.04)}
+.pic img{width:100%;height:100%;object-fit:cover;padding:0;transition:transform .38s ease}
+.pc:hover .pic img{transform:scale(1.06)}
+.ph{height:100%;width:100%;display:grid;place-items:center;font-size:38px;background:linear-gradient(135deg,var(--card2),var(--p1))}
+.off{position:absolute;top:8px;right:8px;background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:1px 8px;border-radius:12px;z-index:1;box-shadow:0 2px 6px rgba(220,38,38,.3)}
 .sold{position:absolute;inset:0;background:rgba(15,23,42,.7);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;z-index:2}
 .pc .info{display:flex;flex-direction:column;gap:3px}
 .pc-cat-lbl{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pc h3{font-size:12.5px;font-weight:700;color:var(--text);line-height:1.65;min-height:41px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0}
 
 /* فوتر کارت محصول: قیمت بنفش در راست + دکمه مربعی بنفش سبد خرید در چپ */
-.pc-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:12px;padding-top:8px}
+.pc-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:10px;padding-top:8px;border-top:1px solid var(--card2)}
 .price{display:flex;flex-direction:column;align-items:flex-start}
 .p-old{font-size:11px;color:var(--muted);line-height:1.2}
 .p-now{font-size:14.5px;font-weight:700;color:var(--primary)}
@@ -292,15 +299,17 @@ main{min-height:65vh;padding-bottom:36px}
    ۷. بنر دوتایی تیره
    ═══════════════════════════════════════════════════ */
 .ns-promo-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--card-gap);margin:var(--sec-gap) 0}
-.ns-p2-card{border-radius:var(--r);padding:26px 30px;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#fff;min-height:148px;transition:.2s;overflow:hidden;position:relative}
+.ns-p2-card{border-radius:var(--r);padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#fff;min-height:148px;transition:.2s;overflow:hidden;position:relative;box-shadow:var(--sh)}
 .ns-p2-card:hover{transform:translateY(-3px);box-shadow:var(--sh2)}
 .p2-modem{background:linear-gradient(120deg,#050b18,#0f2942 60%,#081426)}
 .p2-watch{background:linear-gradient(120deg,#09090b,#27171c 60%,#111827)}
-.ns-p2-txt h3{font-size:19px;font-weight:700;color:#fff;margin-bottom:4px}
+.ns-p2-txt h3{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px}
 .ns-p2-txt p{font-size:13px;color:#cbd5e1;margin:0 0 12px}
 .ns-p2-btn{display:inline-block;background:#fff;color:#0f172a;padding:5px 18px;border-radius:7px;font-size:12px;font-weight:700}
 .p2-btn-orange{background:#ea580c;color:#fff}
-.ns-p2-art{font-size:64px;line-height:1;filter:drop-shadow(0 8px 20px rgba(0,0,0,.4))}
+.ns-p2-thumb{width:104px;height:104px;border-radius:16px;overflow:hidden;flex:none;border:1.5px solid rgba(255,255,255,.2);box-shadow:0 8px 22px rgba(0,0,0,.4);display:grid;place-items:center;background:rgba(255,255,255,.06)}
+.ns-p2-thumb img{width:100%;height:100%;object-fit:cover}
+.ns-p2-art{font-size:48px;line-height:1}
 
 /* ═══════════════════════════════════════════════════
    ۸. بخش «آخرین مقالات» (۴ کارت تصویری تمام‌کارت)

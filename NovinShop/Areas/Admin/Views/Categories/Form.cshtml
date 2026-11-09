@@ -11,13 +11,13 @@
         <div class="g2">
             <div class="fg"><label asp-for="Name">نام دسته‌بندی</label><input asp-for="Name" /><span asp-validation-for="Name"></span></div>
             <div class="fg"><label asp-for="SortOrder">ترتیب نمایش</label><input asp-for="SortOrder" /><span asp-validation-for="SortOrder"></span></div>
-            <div class="fg"><label asp-for="Icon">آیکن (یک ایموجی، مثل 📱)</label><input asp-for="Icon" maxlength="8" /><span asp-validation-for="Icon"></span></div>
+            <div class="fg"><label asp-for="Icon">آیکن (اختیاری — یک ایموجی کوتاه)</label><input asp-for="Icon" maxlength="8" /><span asp-validation-for="Icon"></span></div>
         </div>
         <div class="fg"><label asp-for="Description">توضیحات</label><textarea asp-for="Description" rows="3"></textarea><span asp-validation-for="Description"></span></div>
         <label class="chk"><input asp-for="IsActive" /> فعال (نمایش در سایت)</label>
     </div>
     <div class="card">
-        <h3 class="sec">🔎 سئو</h3>
+        <h3 class="sec">سئو</h3>
         <div class="fg"><label asp-for="Slug">آدرس صفحه (slug)</label><input asp-for="Slug" dir="ltr" />
             <span class="hint">خالی بگذارید تا از روی نام خودکار ساخته شود</span><span asp-validation-for="Slug"></span></div>
         <div class="fg"><label asp-for="SeoTitle">عنوان سئو</label><input asp-for="SeoTitle" data-max="70" /><span asp-validation-for="SeoTitle"></span></div>

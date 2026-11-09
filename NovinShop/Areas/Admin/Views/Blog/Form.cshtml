@@ -5,7 +5,7 @@
     var tinyKey = ViewBag.TinyMceApiKey as string ?? "no-api-key";
 }
 <div class="bar">
-    <h2>@(isEdit ? "✏️ ویرایش مقاله" : "➕ نوشتن مقاله جدید")</h2>
+    <h2>@(isEdit ? "ویرایش مقاله" : "نوشتن مقاله جدید")</h2>
     <a class="btn" asp-action="Index">بازگشت به فهرست مقالات</a>
 </div>
 
@@ -41,7 +41,7 @@
         <div class="g2">
             <div class="fg">
                 <label asp-for="Icon">ایموجی / آیکون کارت</label>
-                <input asp-for="Icon" placeholder="📱" />
+                <input asp-for="Icon" placeholder="" />
             </div>
             <div class="fg">
                 <label asp-for="ReadingMinutes">زمان مطالعه (دقیقه)</label>
@@ -80,7 +80,7 @@
     </div>
 
     <div style="display:flex;gap:10px">
-        <button class="btn pri" type="submit">💾 ذخیره مقاله</button>
+        <button class="btn pri" type="submit">ذخیره مقاله</button>
         <a class="btn" asp-action="Index">انصراف</a>
     </div>
 </form>

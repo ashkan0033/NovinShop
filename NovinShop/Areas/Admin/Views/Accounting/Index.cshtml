@@ -6,10 +6,10 @@
 }
 <div class="bar">
     <div>
-        <h2 style="margin:0">📊 حسابداری جامع فروشگاه (دخل و خرج، بهای تمام‌شده و سود خالص)</h2>
+        <h2 style="margin:0">حسابداری جامع فروشگاه (دخل و خرج، بهای تمام‌شده و سود خالص)</h2>
         <small style="color:var(--muted)">محاسبه دقیق بهای خرید کالاها، فروش خالص، سود هر سفارش، هزینه‌های جاری و تراز نهایی</small>
     </div>
-    <a class="btn" asp-controller="Inventory" asp-action="Index">📦 ورود به انبارداری</a>
+    <a class="btn" asp-controller="Inventory" asp-action="Index">ورود به انبارداری</a>
 </div>
 
 <!-- ردیف اول: شاخص‌های اصلی فروش و سود -->
@@ -17,28 +17,28 @@
     <div class="stat c-blue">
         <div class="s-ic"><svg class="i"><use href="#i-cart"/></svg></div>
         <div>
-            <b>@Fmt.Toman(Model.TotalNetRevenue)</b>
+            <b>@Fmt.Num(Model.TotalNetRevenue) <small>تومان</small></b>
             <small>کل ورودی فروش سفارش‌ها (تخفیف داده‌شده: @Fmt.Toman(Model.TotalDiscountsGiven))</small>
         </div>
     </div>
     <div class="stat c-orange">
         <div class="s-ic"><svg class="i"><use href="#i-package"/></svg></div>
         <div>
-            <b>@Fmt.Toman(Model.TotalCostOfGoodsSold)</b>
+            <b>@Fmt.Num(Model.TotalCostOfGoodsSold) <small>تومان</small></b>
             <small>بهای تمام‌شده کالای فروش‌رفته (COGS به قیمت خرید)</small>
         </div>
     </div>
     <div class="stat c-green">
         <div class="s-ic"><svg class="i"><use href="#i-star"/></svg></div>
         <div>
-            <b>@Fmt.Toman(Model.GrossSalesProfit)</b>
+            <b>@Fmt.Num(Model.GrossSalesProfit) <small>تومان</small></b>
             <small>سود ناخالص فروش کالاها (حاشیه سود: @Fmt.Fa(marginPct.ToString("0.0"))٪)</small>
         </div>
     </div>
     <div class="stat @(Model.NetFinalProfit >= 0 ? "c-violet" : "c-red warn")">
         <div class="s-ic"><svg class="i"><use href="#i-card"/></svg></div>
         <div>
-            <b>@Fmt.Toman(Model.NetFinalProfit)</b>
+            <b>@Fmt.Num(Model.NetFinalProfit) <small>تومان</small></b>
             <small>سود خالص نهایی (پس از کسر هزینه‌های جاری و افزودن درآمدها)</small>
         </div>
     </div>
@@ -47,7 +47,7 @@
 <!-- ردیف دوم: تراز انبار و دخل و خرج عملیاتی -->
 <div class="g2">
     <div class="card">
-        <h3 class="sec">📦 تراز مالی انبار و سرمایه‌گذاری کالا</h3>
+        <h3 class="sec">تراز مالی انبار و سرمایه‌گذاری کالا</h3>
         <div style="display:grid;gap:10px;font-size:13.5px">
             <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--card2);border-radius:10px">
                 <span>کل سرمایه واردشده به انبار (خرید کالا تا امروز):</span>
@@ -69,7 +69,7 @@
     </div>
 
     <div class="card">
-        <h3 class="sec">⚖️ صورت سود و زیان (تراز دخل و خرج فروشگاه)</h3>
+        <h3 class="sec">صورت سود و زیان (تراز دخل و خرج فروشگاه)</h3>
         <div style="display:grid;gap:10px;font-size:13.5px">
             <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--card2);border-radius:10px">
                 <span>۱. فروش خالص کالاها (پس از کسر تخفیف کوپن):</span>
@@ -96,25 +96,25 @@
 
 <!-- فرم ثبت سند جدید دخل و خرج -->
 <form asp-action="AddEntry" method="post" class="card form">
-    <h3 class="sec">➕ ثبت سند جدید دخل و خرج (درآمد یا هزینه جاری فروشگاه)</h3>
+    <h3 class="sec">ثبت سند جدید دخل و خرج (درآمد یا هزینه جاری فروشگاه)</h3>
     <div class="g2">
         <div class="fg">
             <label>نوع سند مالی</label>
             <select name="type">
-                <option value="@AccountingEntryType.Expense">🔴 خرج / هزینه (اجاره، تبلیغات، بسته‌بندی، حقوق و...)</option>
-                <option value="@AccountingEntryType.Income">🟢 دخل / درآمد جانبی (خدمات، همکاری در فروش و...)</option>
+                <option value="@AccountingEntryType.Expense">خرج / هزینه (اجاره، تبلیغات، بسته‌بندی، حقوق و...)</option>
+                <option value="@AccountingEntryType.Income">دخل / درآمد جانبی (خدمات، همکاری در فروش و...)</option>
             </select>
         </div>
         <div class="fg">
             <label>دسته‌بندی حسابداری</label>
             <select name="category">
-                <option value="تبلیغات و بازاریابی">📢 تبلیغات و بازاریابی</option>
-                <option value="بسته‌بندی و ارسال مرسولات">📦 بسته‌بندی و ارسال مرسولات</option>
-                <option value="حقوق و دستمزد پرسنل">👥 حقوق و دستمزد پرسنل</option>
-                <option value="اجاره، قبوض و نگهداری سرور">🏢 اجاره، قبوض و نگهداری سرور</option>
-                <option value="خرید و تأمین کالا (ورودی انبار)">🛒 خرید و تأمین کالا (ورودی انبار)</option>
-                <option value="درآمد خدمات و متفرقه">💰 درآمد خدمات و متفرقه</option>
-                <option value="سایر هزینه‌ها">📋 سایر هزینه‌ها</option>
+                <option value="تبلیغات و بازاریابی">تبلیغات و بازاریابی</option>
+                <option value="بسته‌بندی و ارسال مرسولات">بسته‌بندی و ارسال مرسولات</option>
+                <option value="حقوق و دستمزد پرسنل">حقوق و دستمزد پرسنل</option>
+                <option value="اجاره، قبوض و نگهداری سرور">اجاره، قبوض و نگهداری سرور</option>
+                <option value="خرید و تأمین کالا (ورودی انبار)">خرید و تأمین کالا (ورودی انبار)</option>
+                <option value="درآمد خدمات و متفرقه">درآمد خدمات و متفرقه</option>
+                <option value="سایر هزینه‌ها">سایر هزینه‌ها</option>
             </select>
         </div>
     </div>
@@ -143,7 +143,7 @@
 
 <!-- جدول سودآوری به تفکیک هر سفارش پرداخت‌شده -->
 <div class="card">
-    <h3 class="sec">🧾 ریز سودآوری سفارش‌های فروش‌رفته (قیمت خرید در برابر قیمت فروش)</h3>
+    <h3 class="sec">ریز سودآوری سفارش‌های فروش‌رفته (قیمت خرید در برابر قیمت فروش)</h3>
     <table class="t">
         <thead>
             <tr>
@@ -186,7 +186,7 @@
 
 <!-- دفتر روزنامه اسناد دخل و خرج -->
 <div class="card">
-    <h3 class="sec">📒 دفتر روزنامه اسناد دخل و خرج</h3>
+    <h3 class="sec">دفتر روزنامه اسناد دخل و خرج</h3>
     <table class="t">
         <thead>
             <tr>

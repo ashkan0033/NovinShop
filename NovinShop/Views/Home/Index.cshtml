@@ -6,6 +6,15 @@
     var hasEnd = DateTime.TryParse(Site.Get("deals.ends"), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var endsAt) && endsAt > Fmt.TehranNow();
     var dealsEndIso = hasEnd ? (endsAt.ToString("yyyy-MM-dd'T'HH:mm:ss") + "+03:30") : "";
     var catCounts = Model.CategorySections.ToDictionary(x => x.Category.Id, x => x.TotalCount);
+    string CatImg(string slug) => slug switch
+    {
+        "digital" => "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=240&q=80&auto=format&fit=crop",
+        "fashion" => "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=240&q=80&auto=format&fit=crop",
+        "home" => "https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=240&q=80&auto=format&fit=crop",
+        "books" => "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=240&q=80&auto=format&fit=crop",
+        "beauty" => "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=240&q=80&auto=format&fit=crop",
+        _ => "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=240&q=80&auto=format&fit=crop"
+    };
 }
 
 <!-- ═══ ۲. بنر اصلی تمام‌عرض (Hero Full-Bleed Slider) ═══ -->
@@ -14,10 +23,10 @@
     {
         @foreach (var (b, i) in Model.Banners.Select((b, i) => (b, i)))
         {
-            <div class="slide @(i == 0 ? "on" : "")" style="@(string.IsNullOrEmpty(b.ImagePath) ? "" : $"background-image:linear-gradient(90deg,#06112be6,#081c45cc),url({b.ImagePath})")">
+            <div class="slide @(i == 0 ? "on" : "")" style="@(string.IsNullOrEmpty(b.ImagePath) ? "" : $"background-image:linear-gradient(100deg,rgba(7,15,38,.92) 25%,rgba(12,26,64,.82) 65%,rgba(15,23,42,.75) 100%),url({b.ImagePath})")">
                 <div class="wrap ns-hero-inner">
                     <div class="ns-hero-txt">
-                        <span class="ns-hero-pill">✨ پیشنهاد ویژه امروز</span>
+                        <span class="ns-hero-pill">پیشنهاد ویژه امروز</span>
                         <h1>@b.Title</h1>
                         @if (!string.IsNullOrWhiteSpace(b.Subtitle)) { <p>@b.Subtitle</p> }
                         <div class="ns-hero-btns">
@@ -30,9 +39,24 @@
                     </div>
                     <div class="ns-hero-art" aria-hidden="true">
                         <div class="ns-art-stage">
-                            <div class="ns-art-card ac-1"><span>📱</span><b>پرچمداران دیجیتال</b><small>تا ۳۰٪ تخفیف</small></div>
-                            <div class="ns-art-card ac-2"><span>🎧</span><b>صوتی و گیمینگ</b><small>ارسال فوری</small></div>
-                            <div class="ns-art-card ac-3"><span>🏠</span><b>لوازم هوشمند خانه</b><small>ضمانت اصالت</small></div>
+                            <div class="ns-art-card ac-1">
+                                <img src="https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=200&q=80&auto=format&fit=crop" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                                <span style="display:none">📱</span>
+                                <b>پرچمداران دیجیتال</b>
+                                <small>تا ۳۰٪ تخفیف</small>
+                            </div>
+                            <div class="ns-art-card ac-2">
+                                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&q=80&auto=format&fit=crop" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                                <span style="display:none">🎧</span>
+                                <b>صوتی و گیمینگ</b>
+                                <small>ارسال فوری</small>
+                            </div>
+                            <div class="ns-art-card ac-3">
+                                <img src="https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=200&q=80&auto=format&fit=crop" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                                <span style="display:none">🏠</span>
+                                <b>لوازم هوشمند خانه</b>
+                                <small>ضمانت اصالت</small>
+                            </div>
                         </div>
                     </div>
                     <div class="ns-hero-en" aria-hidden="true">
@@ -50,7 +74,7 @@
         <div class="slide on">
             <div class="wrap ns-hero-inner">
                 <div class="ns-hero-txt">
-                    <span class="ns-hero-pill">✨ جشنواره فروش ویژه</span>
+                    <span class="ns-hero-pill">جشنواره فروش ویژه</span>
                     <h1>اتاق به اتاقش به دل می‌شینه</h1>
                     <p>محبوب‌ترین‌های خانه و کالای دیجیتال با تخفیف ویژه و ارسال اکسپرس</p>
                     <div class="ns-hero-btns">
@@ -60,19 +84,6 @@
                         </a>
                         <a class="ns-hero-ghost" href="/products?sale=true">تخفیف‌های شگفت‌انگیز</a>
                     </div>
-                </div>
-                <div class="ns-hero-art" aria-hidden="true">
-                    <div class="ns-art-stage">
-                        <div class="ns-art-card ac-1"><span>📱</span><b>پرچمداران دیجیتال</b><small>تا ۳۰٪ تخفیف</small></div>
-                        <div class="ns-art-card ac-2"><span>🎧</span><b>صوتی و گیمینگ</b><small>ارسال فوری</small></div>
-                        <div class="ns-art-card ac-3"><span>🏠</span><b>لوازم هوشمند خانه</b><small>ضمانت اصالت</small></div>
-                    </div>
-                </div>
-                <div class="ns-hero-en" aria-hidden="true">
-                    <span>Home</span>
-                    <span>Favorites</span>
-                    <span>Now for less</span>
-                    <b>%</b>
                 </div>
             </div>
         </div>
@@ -89,7 +100,10 @@
         {
             var cnt = catCounts.TryGetValue(c.Id, out var n) ? n : 12;
             <a class="ns-cat-card" asp-controller="Shop" asp-action="Index" asp-route-slug="@c.Slug">
-                <span class="ns-cat-pic">@(string.IsNullOrWhiteSpace(c.Icon) ? "🛍️" : c.Icon)</span>
+                <span class="ns-cat-pic">
+                    <img src="@CatImg(c.Slug)" alt="@c.Name" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" />
+                    <i class="ns-cat-ic" style="display:none">@(string.IsNullOrWhiteSpace(c.Icon) ? "🛍️" : c.Icon)</i>
+                </span>
                 <b class="ns-cat-title">@c.Name</b>
                 <small class="ns-cat-count">+@Fmt.Num(cnt) محصول</small>
             </a>
@@ -143,7 +157,10 @@
             <p>موبایل جدید بخر!</p>
             <span class="ns-p3-btn">دریافت وام</span>
         </div>
-        <div class="ns-p3-art">۲۰۰</div>
+        <div class="ns-p3-thumb">
+            <img src="https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=240&q=80&auto=format&fit=crop" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+            <span class="ns-p3-art" style="display:none">۲۰۰</span>
+        </div>
     </a>
 
     <a class="ns-p3-card p3-gaming" href="/category/digital">
@@ -152,7 +169,10 @@
             <p>انواع مانیتور و تجهیزات حرفه‌ای</p>
             <span class="ns-p3-btn p3-btn-red">خرید</span>
         </div>
-        <div class="ns-p3-art p3-art-neon">GAMING</div>
+        <div class="ns-p3-thumb">
+            <img src="https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=240&q=80&auto=format&fit=crop" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+            <span class="ns-p3-art p3-art-neon" style="display:none">GAMING</span>
+        </div>
     </a>
 
     <a class="ns-p3-card p3-dark" href="/category/digital">
@@ -161,7 +181,10 @@
             <p>شرایط اقساطی آسان بدون ضامن</p>
             <span class="ns-p3-btn p3-btn-cyan">خرید</span>
         </div>
-        <div class="ns-p3-art">💻</div>
+        <div class="ns-p3-thumb">
+            <img src="https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=240&q=80&auto=format&fit=crop" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+            <span class="ns-p3-art" style="display:none">💻</span>
+        </div>
     </a>
 </section>
 
@@ -188,7 +211,10 @@
             <p>مودم و تجهیزات شبکه</p>
             <span class="ns-p2-btn">خرید</span>
         </div>
-        <div class="ns-p2-art">🛜</div>
+        <div class="ns-p2-thumb">
+            <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=280&q=80&auto=format&fit=crop" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+            <span class="ns-p2-art" style="display:none">🛜</span>
+        </div>
     </a>
 
     <a class="ns-p2-card p2-watch" href="/category/digital">
@@ -197,7 +223,10 @@
             <p>انواع ساعت هوشمند</p>
             <span class="ns-p2-btn p2-btn-orange">خرید</span>
         </div>
-        <div class="ns-p2-art">⌚</div>
+        <div class="ns-p2-thumb">
+            <img src="https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=280&q=80&auto=format&fit=crop" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+            <span class="ns-p2-art" style="display:none">⌚</span>
+        </div>
     </a>
 </section>
 

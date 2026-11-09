@@ -24,13 +24,13 @@
                 <td>@Fmt.Toman(o.Total)</td>
                 <td>
                     @OrderStatusInfo.MethodLabel(o.PaymentMethod)
-                    @if (!string.IsNullOrEmpty(o.ReceiptImagePath)) { <span title="دارای تصویر فیش">🧾</span> }
+                    @if (!string.IsNullOrEmpty(o.ReceiptImagePath)) { <span class="badge ship" title="دارای تصویر فیش">فیش</span> }
                 </td>
                 <td><span class="badge @o.Status.Css()">@o.Status.Label()</span></td>
                 <td>@Fmt.Date(o.CreatedAt)</td>
                 <td>
                     <a class="btn sm" asp-action="Details" asp-route-id="@o.Id">جزئیات</a>
-                    <a class="btn sm" asp-action="Invoice" asp-route-id="@o.Id" asp-route-mode="both" target="_blank" title="چاپ فاکتور و برچسب پستی">🖨️ فاکتور</a>
+                    <a class="btn sm" asp-action="Invoice" asp-route-id="@o.Id" asp-route-mode="both" target="_blank" title="چاپ فاکتور و برچسب پستی">فاکتور</a>
                 </td>
             </tr>
         }

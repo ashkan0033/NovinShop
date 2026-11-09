@@ -6,7 +6,7 @@
 }
 <div class="bar">
     <div>
-        <h2>👥 مدیریت کاربران و سطوح دسترسی</h2>
+        <h2>مدیریت کاربران و سطوح دسترسی</h2>
         <small style="color:var(--muted)">ویرایش ایمیل و رمز عبور مدیر کل + تعریف کارمند محصولات (ویرایشگر) و حسابدار</small>
     </div>
 </div>
@@ -36,7 +36,7 @@
 <div class="admin-split-2">
     <!-- ۱) پروفایل و اطلاعات ورود خودِ ادمین کل -->
     <form asp-action="UpdateMyProfile" method="post" class="card form">
-        <h3 class="sec">🔐 اطلاعات ورود حساب شما (مدیر کل)</h3>
+        <h3 class="sec">اطلاعات ورود حساب شما (مدیر کل)</h3>
         <div class="fg">
             <label>ایمیل ورود شما (نام کاربری)</label>
             <input type="email" name="newEmail" value="@myEmail" dir="ltr" required />
@@ -53,13 +53,13 @@
         </div>
         <small class="hint" style="margin-bottom:14px">اگر فقط قصد تغییر ایمیل خود را دارید، فیلدهای رمز عبور را خالی بگذارید.</small>
         <div class="form-foot-right">
-            <button class="btn pri" type="submit">💾 ذخیره ایمیل و رمز عبور من</button>
+            <button class="btn pri" type="submit">ذخیره ایمیل و رمز عبور من</button>
         </div>
     </form>
 
     <!-- ۲) افزودن کارمند / کاربر جدید -->
     <form asp-action="CreateStaff" method="post" class="card form">
-        <h3 class="sec">➕ تعریف کارمند / اپراتور جدید</h3>
+        <h3 class="sec">تعریف کارمند / اپراتور جدید</h3>
         <div class="g2">
             <div class="fg">
                 <label>ایمیل ورود کارمند</label>
@@ -73,9 +73,9 @@
         <div class="fg">
             <label>نقش و سطح دسترسی در پنل</label>
             <select name="role">
-                <option value="@AppRoles.Editor">📦 کارمند محصولات و محتوا (ویرایشگر)</option>
-                <option value="@AppRoles.Accountant">📊 حسابدار و مسئول سفارش‌ها</option>
-                <option value="@AppRoles.Admin">👑 مدیر کل (دسترسی کامل)</option>
+                <option value="@AppRoles.Editor">کارمند محصولات و محتوا (ویرایشگر)</option>
+                <option value="@AppRoles.Accountant">حسابدار و مسئول سفارش‌ها</option>
+                <option value="@AppRoles.Admin">مدیر کل (دسترسی کامل)</option>
             </select>
         </div>
         <small class="hint" style="margin-bottom:14px">رمز عبور باید حداقل ۸ کاراکتر و شامل حروف بزرگ، کوچک و عدد باشد.</small>

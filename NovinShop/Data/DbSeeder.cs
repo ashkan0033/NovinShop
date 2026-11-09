@@ -49,6 +49,120 @@ public static class DbSeeder
         await SeedContentAsync(db);
         await SeedDemoShowcaseAsync(db);
         await BackfillIconsAsync(db);
+        await BackfillUnsplashImagesAsync(db);
+    }
+
+    // اختصاص تصاویر واقعی و باکیفیت Unsplash به محصولات، بنرها و مقالات وبلاگ (در صورت خالی بودن تصویر)
+    private static async Task BackfillUnsplashImagesAsync(AppDbContext db)
+    {
+        static string U(string id, int w = 640) => $"https://images.unsplash.com/photo-{id}?w={w}&q=80&auto=format&fit=crop";
+
+        var allProducts = await db.Products.Include(p => p.Category).ToListAsync();
+        var changed = false;
+
+        foreach (var p in allProducts)
+        {
+            if (!string.IsNullOrEmpty(p.ImagePath)) continue;
+            var n = p.Name ?? "";
+            var c = p.Category?.Slug ?? "";
+
+            string mainId = c switch
+            {
+                "digital" => "1511707171634-5f897ff02aa9",
+                "fashion" => "1542291026-7eec264c27ff",
+                "home" => "1517668808822-9ebb02f2a0e6",
+                "books" => "1544947950-fa07a98d237f",
+                "beauty" => "1620916566398-39f1143ab7be",
+                _ => "1583454110551-21f2fa2afe61"
+            };
+            string[] extraIds = c switch
+            {
+                "digital" => new[] { "1498049794561-7780e7231661", "1468495244123-6c6c332eeece" },
+                "fashion" => new[] { "1441986300917-64674bd600d8", "1483985988355-763728e1935b" },
+                "home" => new[] { "1556911220-bff31c812dba", "1556910103-1c02745aae4d" },
+                "books" => new[] { "1512820790803-83ca734da794", "1495446815901-a7297e633e8d" },
+                "beauty" => new[] { "1608248543803-ba4f8c70ae0b", "1556228578-8c89e6adf883" },
+                _ => new[] { "1517836357463-d25dfeac3438", "1517963879433-6ad2b056d712" }
+            };
+
+            if (n.Contains("هدفون")) { mainId = "1505740420928-5e560c06d30e"; extraIds = new[] { "1618366712010-f4ae9c647dcb", "1484704849700-f032a568e944" }; }
+            else if (n.Contains("ساعت هوشمند")) { mainId = "1546868871-7041f2a55e12"; extraIds = new[] { "1579586337278-3befd40fd17a", "1508685096489-7aacd43bd3b1" }; }
+            else if (n.Contains("گوشی") || n.Contains("گلکسی")) { mainId = "1610945415295-d9bbf067e59c"; extraIds = new[] { "1511707171634-5f897ff02aa9", "1592899677977-9c10ca588bbd" }; }
+            else if (n.Contains("لپ‌تاپ")) { mainId = "1496181133206-80ce9b88a853"; extraIds = new[] { "1517336714731-489689fd1ca8", "1525547719571-a2d4ac8945e2" }; }
+            else if (n.Contains("پاوربانک")) { mainId = "1609091839311-d5365f9ff1c5"; extraIds = new[] { "1583863788434-e58a36330cf0", "1511707171634-5f897ff02aa9" }; }
+            else if (n.Contains("کیبورد")) { mainId = "1587829741301-dc798b83add3"; extraIds = new[] { "1541140532154-b024d705b90a", "1593305841991-05c297ba4575" }; }
+            else if (n.Contains("ماوس")) { mainId = "1527864550417-7fd91fc51a46"; extraIds = new[] { "1615663245857-ac93bb7c39e7", "1587829741301-dc798b83add3" }; }
+            else if (n.Contains("کنسول") || n.Contains("PlayStation")) { mainId = "1606813907291-d86efa9b94db"; extraIds = new[] { "1607853202273-797f1c22a38e", "1542751371-adc38448a05e" }; }
+            else if (n.Contains("تبلت")) { mainId = "1544244015-0df4b3ffc6b0"; extraIds = new[] { "1561154464-82e9adf32764", "1512941937669-90a1b58e7e9c" }; }
+            else if (n.Contains("هودی")) { mainId = "1556821840-3a63f95609a7"; extraIds = new[] { "1620799140408-edc6dcb6d633", "1441986300917-64674bd600d8" }; }
+            else if (n.Contains("کتانی") || n.Contains("کفش")) { mainId = "1542291026-7eec264c27ff"; extraIds = new[] { "1460353581641-37baddab0fa2", "1556821840-3a63f95609a7" }; }
+            else if (n.Contains("کوله‌پشتی")) { mainId = "1553062407-98eeb64c6a62"; extraIds = new[] { "1622560480605-d83c853bc5c3", "1496181133206-80ce9b88a853" }; }
+            else if (n.Contains("عینک")) { mainId = "1511499767150-a48a237f0083"; extraIds = new[] { "1572635196237-14b3f281503f", "1483985988355-763728e1935b" }; }
+            else if (n.Contains("پیراهن")) { mainId = "1596755094514-f87e34085b2c"; extraIds = new[] { "1602810318383-e386cc2a3ccf", "1441986300917-64674bd600d8" }; }
+            else if (n.Contains("کاپشن")) { mainId = "1551028719-00167b16eac5"; extraIds = new[] { "1591047139829-d91aecb6caea", "1483985988355-763728e1935b" }; }
+            else if (n.Contains("کیف پول")) { mainId = "1627123424574-724758594e93"; extraIds = new[] { "1606503825008-909a67e63c3d", "1524592094714-0f0654e20314" }; }
+            else if (n.Contains("ساعت مچی")) { mainId = "1524592094714-0f0654e20314"; extraIds = new[] { "1522312346375-d1a52e2b99b3", "1523275335684-37898b6baf30" }; }
+            else if (n.Contains("قهوه‌ساز")) { mainId = "1517668808822-9ebb02f2a0e6"; extraIds = new[] { "1495474472287-4d71bcdd2085", "1556911220-bff31c812dba" }; }
+            else if (n.Contains("سرخ‌کن")) { mainId = "1626509653291-18d9a934b9db"; extraIds = new[] { "1648134859175-78b41b4db186", "1556910103-1c02745aae4d" }; }
+            else if (n.Contains("جاروبرقی")) { mainId = "1589894404892-7310b92ea7a2"; extraIds = new[] { "1603618090561-412154b4bd1b", "1556911220-bff31c812dba" }; }
+            else if (n.Contains("چراغ مطالعه")) { mainId = "1507473885765-e6ed057f782c"; extraIds = new[] { "1513506003901-1e6a229e2d15", "1484480974693-6ca0a78fb36b" }; }
+            else if (n.Contains("قابلمه")) { mainId = "1556909114-f6e7ad7d3136"; extraIds = new[] { "1556910103-1c02745aae4d", "1556911220-bff31c812dba" }; }
+            else if (n.Contains("چای‌ساز") || n.Contains("کتری")) { mainId = "1594213114663-d94db9b17125"; extraIds = new[] { "1563822249366-3efb23b8e0c9", "1495474472287-4d71bcdd2085" }; }
+            else if (n.Contains("مخلوط‌کن")) { mainId = "1570222094114-d054a817e56b"; extraIds = new[] { "1585237017125-24baf8d7406f", "1556910103-1c02745aae4d" }; }
+            else if (n.Contains("یوگا") || n.Contains("زیرانداز")) { mainId = "1601925260368-ae2f83cf8b7f"; extraIds = new[] { "1592432678016-e910b452f9a2", "1517836357463-d25dfeac3438" }; }
+            else if (n.Contains("قمقمه")) { mainId = "1602143407151-7111542de6e8"; extraIds = new[] { "1523362628745-0c100150b504", "1517836357463-d25dfeac3438" }; }
+            else if (n.Contains("چادر")) { mainId = "1504280390367-361c6d9f38f4"; extraIds = new[] { "1478131143081-80f7f84ca84d", "1510312305653-8ed496efae75" }; }
+            else if (n.Contains("دمبل")) { mainId = "1583454110551-21f2fa2afe61"; extraIds = new[] { "1517836357463-d25dfeac3438", "1517963879433-6ad2b056d712" }; }
+            else if (n.Contains("کش ورزشی")) { mainId = "1598289431512-b97b0917affc"; extraIds = new[] { "1517963879433-6ad2b056d712", "1517836357463-d25dfeac3438" }; }
+            else if (n.Contains("کیسه خواب")) { mainId = "1510312305653-8ed496efae75"; extraIds = new[] { "1487730116645-74489c95b41b", "1504280390367-361c6d9f38f4" }; }
+            else if (n.Contains("سرم")) { mainId = "1620916566398-39f1143ab7be"; extraIds = new[] { "1608248543803-ba4f8c70ae0b", "1556228578-8c89e6adf883" }; }
+            else if (n.Contains("مسواک")) { mainId = "1607613009820-a29f7bb81c04"; extraIds = new[] { "1556228578-8c89e6adf883", "1620916566398-39f1143ab7be" }; }
+            else if (n.Contains("سشوار")) { mainId = "1522338140262-f46f5913618a"; extraIds = new[] { "1580618672591-eb180b1a973f", "1556228578-8c89e6adf883" }; }
+            else if (n.Contains("ضدآفتاب") || n.Contains("کرم")) { mainId = "1556228578-8c89e6adf883"; extraIds = new[] { "1571781926291-c477ebfd024b", "1608248543803-ba4f8c70ae0b" }; }
+            else if (n.Contains("اصلاح")) { mainId = "1621607512214-68297480165e"; extraIds = new[] { "1585751119414-ef2636f8aede", "1522338140262-f46f5913618a" }; }
+            else if (n.Contains("ادوپرفیوم") || n.Contains("عطر")) { mainId = "1541643600914-78b084683601"; extraIds = new[] { "1523293182086-7651a899d37f", "1608248543803-ba4f8c70ae0b" }; }
+            else if (n.Contains("بولت ژورنال") || n.Contains("دفتر")) { mainId = "1531346878377-a5be20888e57"; extraIds = new[] { "1517842645767-c639042777db", "1484480974693-6ca0a78fb36b" }; }
+            else if (n.Contains("عادت")) { mainId = "1544947950-fa07a98d237f"; }
+            else if (n.Contains("داده محور")) { mainId = "1532012197267-da84d127e765"; }
+            else if (n.Contains("شفاف اندیشیدن")) { mainId = "1512820790803-83ca734da794"; }
+            else if (n.Contains("کار عمیق")) { mainId = "1495446815901-a7297e633e8d"; }
+            else if (n.Contains("روانشناسی پول")) { mainId = "1589829085413-56de8ae18c73"; }
+            else if (n.Contains("کد تمیز") || n.Contains("کدنویسی")) { mainId = "1543002588-bfa74002ed7e"; }
+
+            p.ImagePath = U(mainId, 640);
+            if (string.IsNullOrEmpty(p.GalleryJson))
+            {
+                p.GalleryJson = System.Text.Json.JsonSerializer.Serialize(extraIds.Select(x => U(x, 720)).ToList());
+            }
+            changed = true;
+        }
+
+        var banners = await db.Banners.ToListAsync();
+        foreach (var b in banners)
+        {
+            if (!string.IsNullOrEmpty(b.ImagePath)) continue;
+            var t = b.Title ?? "";
+            b.ImagePath = t.Contains("خانه") ? U("1556911220-bff31c812dba", 1400)
+                        : t.Contains("پوشاک") ? U("1441986300917-64674bd600d8", 1400)
+                        : U("1498049794561-7780e7231661", 1400);
+            changed = true;
+        }
+
+        var posts = await db.BlogPosts.ToListAsync();
+        foreach (var post in posts)
+        {
+            if (!string.IsNullOrEmpty(post.ImagePath)) continue;
+            var s = post.Slug ?? "";
+            post.ImagePath = s.Contains("smartphone") ? U("1512941937669-90a1b58e7e9c", 800)
+                           : s.Contains("headphone") ? U("1484704849700-f032a568e944", 800)
+                           : s.Contains("planning") ? U("1484480974693-6ca0a78fb36b", 800)
+                           : s.Contains("gaming") ? U("1542751371-adc38448a05e", 800)
+                           : s.Contains("weekend") ? U("1495474472287-4d71bcdd2085", 800)
+                           : U("1556910103-1c02745aae4d", 800);
+            changed = true;
+        }
+
+        if (changed) await db.SaveChangesAsync();
     }
 
     // ماژول‌های پیش‌فرض پرداخت (زرین‌پال، کارت به کارت، شبیه‌ساز دمو)

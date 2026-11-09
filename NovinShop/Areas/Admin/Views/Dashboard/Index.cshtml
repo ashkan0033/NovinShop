@@ -11,7 +11,7 @@
     var weekSum = chart.Sum(c => c.Sum);
 }
 <div class="bar">
-    <h2>👋 خوش آمدید</h2>
+    <h2>خوش آمدید</h2>
     <div style="display:flex;gap:8px">
         <a class="btn" href="/" target="_blank"><svg class="i"><use href="#i-home"/></svg> مشاهده‌ی سایت</a>
         <a class="btn pri" asp-controller="Products" asp-action="Create"><svg class="i"><use href="#i-plus"/></svg> محصول جدید</a>
@@ -66,10 +66,10 @@
         </table>
     </div>
     <div class="card">
-        <h3 class="sec">⚠ موجودی رو به اتمام</h3>
+        <h3 class="sec">موجودی رو به اتمام</h3>
         <div class="low-list">
             @foreach (var p in low) { <a asp-controller="Products" asp-action="Edit" asp-route-id="@p.Id"><span>@p.Name</span><svg class="i"><use href="#i-left"/></svg></a> }
-            @if (!low.Any()) { <div style="color:var(--muted);text-align:center;padding:20px">✓ موجودی همه‌ی محصولات کافی است</div> }
+            @if (!low.Any()) { <div style="color:var(--muted);text-align:center;padding:20px">موجودی همه‌ی محصولات کافی است</div> }
         </div>
     </div>
 </div>

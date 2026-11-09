@@ -7,7 +7,8 @@
         <div class="pic">
             @if (!string.IsNullOrEmpty(Model.ImagePath))
             {
-                <img src="@Model.ImagePath" alt="@Model.Name" loading="lazy" />
+                <img src="@Model.ImagePath" alt="@Model.Name" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" />
+                <div class="ph" style="display:none;--h:@(Model.Id * 47 % 360)"><span>@Fmt.ProductIcon(Model)</span></div>
             }
             else
             {

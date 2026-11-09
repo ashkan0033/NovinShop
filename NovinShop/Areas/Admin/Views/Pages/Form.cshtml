@@ -18,7 +18,7 @@
         <label class="chk"><input asp-for="ShowInFooter" /> نمایش لینک در فوتر سایت</label>
     </div>
     <div class="card">
-        <h3 class="sec">🔎 سئو</h3>
+        <h3 class="sec">سئو</h3>
         <div class="fg"><label asp-for="Slug">آدرس صفحه (slug)</label><input asp-for="Slug" dir="ltr" /><span class="hint">خالی بگذارید تا از روی عنوان ساخته شود</span><span asp-validation-for="Slug"></span></div>
         <div class="fg"><label asp-for="SeoTitle">عنوان سئو</label><input asp-for="SeoTitle" data-max="70" /><span asp-validation-for="SeoTitle"></span></div>
         <div class="fg"><label asp-for="SeoDescription">توضیحات سئو</label><textarea asp-for="SeoDescription" rows="2" data-max="170"></textarea><span asp-validation-for="SeoDescription"></span></div>

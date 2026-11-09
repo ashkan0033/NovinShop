@@ -8,56 +8,94 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>ورود به پنل مدیریت</title>
+    <title>ورود به پنل مدیریت | @Site.Get("site.name")</title>
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
     <style>
-        body{display:grid;grid-template-columns:1fr 1fr;place-items:stretch;min-height:100vh;background:var(--card)}
-        .l-art{background:linear-gradient(135deg,#ef394e,#ff8a1f);color:#fff;display:flex;flex-direction:column;justify-content:center;padding:60px;position:relative;overflow:hidden}
-        .l-art:before{content:"";position:absolute;width:420px;height:420px;border-radius:50%;background:#ffffff14;left:-120px;bottom:-140px}
-        .l-art h2{font-size:30px;margin:16px 0 8px}.l-art p{opacity:.9;max-width:420px}
-        .l-form{display:grid;place-items:center;padding:30px}
-        .box{width:min(400px,100%)}
-        .box h1{margin:0 0 4px;font-size:24px}.box p{margin:0 0 24px;color:var(--muted)}
-        .box label{display:block;margin:14px 0 6px;font-size:13px;font-weight:700}
-        .box input[type=email],.box input[type=password],.box input[type=text]{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--card2)}
-        .box input:focus{outline:0;border-color:var(--pri);background:var(--card)}
-        .chk{display:flex;gap:8px;align-items:center;margin:16px 0;font-size:13px}
-        .box button{width:100%;justify-content:center;padding:13px}
-        @@media(max-width:800px){body{grid-template-columns:1fr}.l-art{display:none}}
+        body{display:grid;grid-template-columns:1.05fr 1fr;place-items:stretch;min-height:100vh;background:var(--bg)}
+        .l-art{background:linear-gradient(145deg,#0B1120 0%,#1E1B4B 60%,#312E81 100%);color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:56px;position:relative;overflow:hidden}
+        .l-art:before{content:"";position:absolute;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.22),transparent 70%);left:-120px;bottom:-140px;pointer-events:none}
+        .l-art-top{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+        .l-art-mid{position:relative;z-index:1;max-width:440px}
+        .l-art-mid h2{font-size:26px;margin:0 0 10px;line-height:1.5;color:#fff}
+        .l-art-mid p{color:#CBD5E1;font-size:14px;line-height:1.9;margin:0 0 24px}
+        .l-feats{display:grid;gap:10px;font-size:12.5px;color:#E2E8F0}
+        .l-feat{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:10px 14px;border-radius:8px}
+        .l-feat i{width:7px;height:7px;border-radius:50%;background:#818CF8;flex:none}
+        .l-art-foot{font-size:12px;color:#94A3B8;position:relative;z-index:1}
+        .l-form{display:grid;place-items:center;padding:32px;background:var(--card)}
+        .box{width:min(410px,100%)}
+        .box h1{margin:0 0 6px;font-size:21px;color:var(--text)}
+        .box > p{margin:0 0 22px;color:var(--muted);font-size:13px}
+        .box label{display:block;margin:14px 0 6px;font-size:12.5px;font-weight:700;color:var(--text2)}
+        .box input[type=email],.box input[type=password],.box input[type=text]{width:100%;height:40px;padding:0 12px;border:1px solid #D1D5DB;border-radius:8px;background:var(--card);font-size:13.5px}
+        .box input:focus{outline:0;border-color:var(--pri);box-shadow:0 0 0 3px rgba(79,70,229,.14)}
+        .chk{display:flex;gap:8px;align-items:center;margin:16px 0;font-size:12.5px;color:var(--text2)}
+        .box button.pri{width:100%;height:40px;justify-content:center;font-size:13.5px}
+        .demo-creds{margin-top:22px;padding:14px;border-radius:10px;background:var(--card2);border:1px solid var(--line);font-size:12px}
+        .demo-creds-hd{display:block;margin-bottom:8px;color:var(--text);font-weight:700;font-size:12px}
+        .demo-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:6px;background:var(--card);border:1px solid var(--line2);margin-bottom:6px;cursor:pointer;transition:.15s}
+        .demo-row:last-child{margin-bottom:0}
+        .demo-row:hover{border-color:var(--pri);background:var(--pri1)}
+        .demo-role{font-weight:700;color:var(--text2);font-size:11.5px}
+        .demo-code{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--muted)}
+        @@media(max-width:860px){body{grid-template-columns:1fr}.l-art{display:none}}
     </style>
 </head>
 <body>
 <div class="l-art">
-    <span class="brand-mark" style="width:56px;height:56px;background:#ffffff26"><svg class="i" viewBox="0 0 24 24" style="width:28px;height:28px"><path d="m21 8-9-5-9 5v8l9 5 9-5zM3.3 7 12 12l8.7-5M12 22V12"/></svg></span>
-    <h2>@Site.Get("site.name")</h2>
-    <p>مدیریت محصولات، سفارش‌ها، بنرها و تنظیمات فروشگاه از یک پنل یکپارچه.</p>
+    <div class="l-art-top">
+        <span class="brand-mark" style="width:40px;height:40px;background:#4F46E5"><svg class="i" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="m21 8-9-5-9 5v8l9 5 9-5zM3.3 7 12 12l8.7-5M12 22V12"/></svg></span>
+        <div>
+            <b style="font-size:16px;display:block">@Site.Get("site.name")</b>
+            <small style="color:#94A3B8;font-size:11.5px">سامانه یکپارچه مدیریت فروشگاه</small>
+        </div>
+    </div>
+    <div class="l-art-mid">
+        <h2>مدیریت هوشمند کاتالوگ، انبارداری و حسابداری مالی</h2>
+        <p>کنترل لحظه‌ای موجودی کاردکس کالا، محاسبه خودکار بهای تمام‌شده (COGS)، مدیریت سفارش‌ها و سطوح دسترسی کارمندان در یک محیط یکپارچه.</p>
+        <div class="l-feats">
+            <div class="l-feat"><i></i><span>انبارداری یکپارچه با کسر و بازگشت خودکار موجودی</span></div>
+            <div class="l-feat"><i></i><span>حسابداری بهای تمام‌شده، دفتر روزنامه و تراز سود و زیان</span></div>
+            <div class="l-feat"><i></i><span>سطوح دسترسی تفکیک‌شده (مدیر کل، ویرایشگر محتوا، حسابدار)</span></div>
+        </div>
+    </div>
+    <div class="l-art-foot">© @Site.Get("site.name") — پنل مدیریت سازمانی</div>
 </div>
 <div class="l-form">
-    <form asp-action="Login" method="post" class="box">
+    <form asp-action="Login" method="post" class="box" id="loginForm">
         <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
-        <h1>ورود به پنل مدیریت</h1>
-        <p>برای ادامه، ایمیل و رمز عبور خود را وارد کنید.</p>
+        <h1>ورود به حساب کاربری</h1>
+        <p>مشخصات حساب مدیریتی یا کارمندی خود را وارد نمایید.</p>
         <div asp-validation-summary="ModelOnly" class="err"></div>
 
-        <label asp-for="Email">ایمیل</label>
-        <input asp-for="Email" dir="ltr" autofocus />
+        <label asp-for="Email">ایمیل سازمانی</label>
+        <input asp-for="Email" id="loginEmail" dir="ltr" autofocus placeholder="admin@novinshop.local" />
         <span asp-validation-for="Email" class="err"></span>
 
         <label asp-for="Password">رمز عبور</label>
-        <input asp-for="Password" dir="ltr" />
+        <input asp-for="Password" id="loginPass" dir="ltr" placeholder="••••••••" />
         <span asp-validation-for="Password" class="err"></span>
 
-        <div class="chk"><input asp-for="RememberMe" /><span>مرا به خاطر بسپار</span></div>
-        <button class="btn pri" type="submit">ورود به پنل</button>
+        <div class="chk"><input asp-for="RememberMe" /><span>مرا در این مرورگر به خاطر بسپار</span></div>
+        <button class="btn pri" type="submit">ورود به پنل مدیریت</button>
 
-        <div style="margin-top:18px;padding:12px 14px;border-radius:12px;background:var(--card2);border:1px dashed var(--line);font-size:12px;line-height:1.9">
-            <b style="display:block;margin-bottom:4px;color:var(--text)">🔑 حساب‌های نمونه جهت تست سطوح دسترسی:</b>
-            <div dir="ltr" style="text-align:left">👑 <b>admin@novinshop.local</b> / <code>Admin@12345</code></div>
-            <div dir="ltr" style="text-align:left">📦 <b>editor@novinshop.local</b> / <code>Staff@12345</code></div>
-            <div dir="ltr" style="text-align:left">📊 <b>accountant@novinshop.local</b> / <code>Staff@12345</code></div>
+        <div class="demo-creds">
+            <span class="demo-creds-hd">حساب‌های نمونه جهت تست سریع (کلیک برای جایگذاری):</span>
+            <div class="demo-row" onclick="document.getElementById('loginEmail').value='admin@novinshop.local';document.getElementById('loginPass').value='Admin@12345'">
+                <span class="demo-role">مدیر کل (Admin)</span>
+                <span class="demo-code" dir="ltr">admin@novinshop.local / Admin@12345</span>
+            </div>
+            <div class="demo-row" onclick="document.getElementById('loginEmail').value='editor@novinshop.local';document.getElementById('loginPass').value='Staff@12345'">
+                <span class="demo-role">ویرایشگر محتوا (Editor)</span>
+                <span class="demo-code" dir="ltr">editor@novinshop.local / Staff@12345</span>
+            </div>
+            <div class="demo-row" onclick="document.getElementById('loginEmail').value='accountant@novinshop.local';document.getElementById('loginPass').value='Staff@12345'">
+                <span class="demo-role">حسابدار (Accountant)</span>
+                <span class="demo-code" dir="ltr">accountant@novinshop.local / Staff@12345</span>
+            </div>
         </div>
 
-        <a href="/" style="display:block;text-align:center;margin-top:16px;color:var(--muted);font-size:13px">← بازگشت به فروشگاه</a>
+        <a href="/" style="display:block;text-align:center;margin-top:16px;color:var(--muted);font-size:12.5px">← بازگشت به صفحه اصلی فروشگاه</a>
     </form>
 </div>
 </body>

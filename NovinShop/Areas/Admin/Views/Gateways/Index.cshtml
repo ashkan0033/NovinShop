@@ -3,7 +3,7 @@
     ViewData["Title"] = "ماژول‌های پرداخت و درگاه‌ها";
 }
 <div class="bar">
-    <h2>💳 ماژول‌های پرداخت و درگاه‌ها</h2>
+    <h2>ماژول‌های پرداخت و درگاه‌ها</h2>
 </div>
 <p class="hint" style="margin-bottom:18px;font-size:13.5px">
     از این بخش می‌توانید درگاه‌های پرداخت آنلاین (زرین‌پال)، روش کارت به کارت با ارسال فیش و درگاه آزمایشی را فعال، غیرفعال یا پیکربندی کنید.
@@ -12,12 +12,12 @@
 
 @foreach (var g in Model)
 {
-    var badgeIcon = g.Key == "zarinpal" ? "🟢" : g.Key == "card_to_card" ? "💳" : "🧪";
+    var badgeIcon = g.Key == "card_to_card" ? "i-card" : g.Key == "zarinpal" ? "i-shield" : "i-bolt";
     <form asp-action="Save" method="post" class="card form">
         <input type="hidden" name="id" value="@g.Id" />
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)">
             <div style="display:flex;align-items:center;gap:10px">
-                <span style="font-size:24px">@badgeIcon</span>
+                <span class="th" style="width:38px;height:38px;color:var(--pri)"><svg class="i"><use href="#@badgeIcon"/></svg></span>
                 <div>
                     <b style="font-size:16px">@g.Title</b>
                     <small class="hint" style="margin:0" dir="ltr">Module Key: @g.Key</small>

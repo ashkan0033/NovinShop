@@ -5,7 +5,7 @@
 }
 <div class="bar">
     <div>
-        <h2 style="margin:0">📦 انبارداری، حواله ورود کالا و کاردکس موجودی</h2>
+        <h2 style="margin:0">انبارداری، حواله ورود کالا و کاردکس موجودی</h2>
         <small style="color:var(--muted)">تمامی کالاها ابتدا با قیمت خرید وارد انبار می‌شوند و هنگام فروش در سایت به‌صورت خودکار از انبار کسر می‌گردند</small>
     </div>
 </div>
@@ -14,25 +14,25 @@
 <div class="stats">
     <div class="stat c-blue">
         <div class="s-ic"><svg class="i"><use href="#i-package"/></svg></div>
-        <div><b>@Fmt.Num(Model.TotalUnits) عدد</b><small>کل موجودی فیزیکی در انبار (@Fmt.Num(Model.Products.Count) تنوع کالا)</small></div>
+        <div><b>@Fmt.Num(Model.TotalUnits) <small>عدد</small></b><small>کل موجودی فیزیکی در انبار (@Fmt.Num(Model.Products.Count) تنوع کالا)</small></div>
     </div>
     <div class="stat c-orange">
         <div class="s-ic"><svg class="i"><use href="#i-card"/></svg></div>
-        <div><b>@Fmt.Toman(Model.TotalCostValue)</b><small>ارزش انبار به قیمت خرید (سرمایه خوابیده)</small></div>
+        <div><b>@Fmt.Num(Model.TotalCostValue) <small>تومان</small></b><small>ارزش انبار به قیمت خرید (سرمایه خوابیده)</small></div>
     </div>
     <div class="stat c-green">
         <div class="s-ic"><svg class="i"><use href="#i-star"/></svg></div>
-        <div><b>@Fmt.Toman(Model.TotalSaleValue)</b><small>ارزش انبار به قیمت فروش (سود مورد انتظار: @Fmt.Toman(potentialProfit))</small></div>
+        <div><b>@Fmt.Num(Model.TotalSaleValue) <small>تومان</small></b><small>ارزش انبار به قیمت فروش (سود مورد انتظار: @Fmt.Toman(potentialProfit))</small></div>
     </div>
     <div class="stat c-red @(Model.LowStockCount > 0 ? "warn" : "")">
         <div class="s-ic"><svg class="i"><use href="#i-flame"/></svg></div>
-        <div><b>@Fmt.Num(Model.LowStockCount) کالا</b><small>کالاهای کم‌موجود (۳ عدد یا کمتر) نیازمند شارژ</small></div>
+        <div><b>@Fmt.Num(Model.LowStockCount) <small>کالا</small></b><small>کالاهای کم‌موجود (۳ عدد یا کمتر) نیازمند شارژ</small></div>
     </div>
 </div>
 
 <!-- فرم ثبت حواله ورود به انبار / ضایعات / انبارگردانی -->
 <form asp-action="RecordMovement" method="post" class="card form">
-    <h3 class="sec">➕ ثبت حواله انبار (ورود خرید جدید / کسر ضایعات / تعدیل انبارگردانی)</h3>
+    <h3 class="sec">ثبت حواله انبار (ورود خرید جدید / کسر ضایعات / تعدیل انبارگردانی)</h3>
     <div class="g2">
         <div class="fg">
             <label>انتخاب کالا *</label>
@@ -50,10 +50,10 @@
         <div class="fg">
             <label>نوع عملیات انبار *</label>
             <select name="type" id="invTypeSelect">
-                <option value="@InventoryTxType.StockIn">📥 ورود کالا به انبار (خرید / تأمین جدید — افزایش موجودی)</option>
-                <option value="@InventoryTxType.WasteOut">📤 خروج ضایعات / کسری انبار (کاهش موجودی)</option>
-                <option value="@InventoryTxType.ReturnIn">↩ برگشت کالا به انبار (افزایش موجودی)</option>
-                <option value="@InventoryTxType.Adjustment">⚖️ تعدیل انبارگردانی (مقدار + یا −)</option>
+                <option value="@InventoryTxType.StockIn">ورود کالا به انبار (خرید / تأمین جدید — افزایش موجودی)</option>
+                <option value="@InventoryTxType.WasteOut">خروج ضایعات / کسری انبار (کاهش موجودی)</option>
+                <option value="@InventoryTxType.ReturnIn">برگشت کالا به انبار (افزایش موجودی)</option>
+                <option value="@InventoryTxType.Adjustment">تعدیل انبارگردانی (مقدار + یا −)</option>
             </select>
         </div>
     </div>
@@ -92,18 +92,18 @@
 
 <!-- جدول موجودی و بهای تمام‌شده کالاها در انبار -->
 <div class="card">
-    <h3 class="sec">📋 فهرست موجودی کالاها، قیمت خرید، قیمت فروش و سود هر واحد</h3>
+    <h3 class="sec">فهرست موجودی کالاها، قیمت خرید، قیمت فروش و سود هر واحد</h3>
     <table class="t">
         <thead>
             <tr>
                 <th>کد</th>
                 <th>نام کالا</th>
                 <th>دسته‌بندی</th>
-                <th>موجودی انبار</th>
-                <th>آخرین قیمت خرید واحد</th>
+                <th>موجودی</th>
+                <th>قیمت خرید واحد</th>
                 <th>قیمت فروش</th>
-                <th>سود ناخالص هر عدد</th>
-                <th>ارزش موجودی (به قیمت خرید)</th>
+                <th>سود هر واحد</th>
+                <th>ارزش موجودی</th>
                 <th></th>
             </tr>
         </thead>
@@ -139,7 +139,7 @@
 <!-- کاردکس گردش انبار -->
 <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 12px 6px">
-        <h3 class="sec" style="margin:0;padding:0">🔄 کاردکس گردش ورود و خروج انبار (آخرین ۶۰ تراکنش)</h3>
+        <h3 class="sec" style="margin:0;padding:0">کاردکس گردش ورود و خروج انبار (آخرین ۶۰ تراکنش)</h3>
         @if (Model.SelectedProductId is > 0 || Model.SelectedType is not null)
         {
             <a class="btn sm" asp-action="Index">نمایش همه‌ی تراکنش‌ها</a>

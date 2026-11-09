@@ -257,7 +257,7 @@ public class ProductsController : Controller
 
     private void DeleteImage(string? path)
     {
-        if (string.IsNullOrEmpty(path)) return;
+        if (string.IsNullOrEmpty(path) || !path.StartsWith('/')) return; // تصاویر خارجی (مثل Unsplash) فایل محلی ندارند
         var full = Path.Combine(_env.ContentRootPath, "wwwroot", path.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
         if (System.IO.File.Exists(full)) System.IO.File.Delete(full);
     }

@@ -16,7 +16,7 @@
     ("صفحه‌های بدون توضیحات سئو", Model.PagesNoDesc, "Pages") })
 {
     <div class="card">
-        <h3 class="sec">@title <span class="badge @(items.Any() ? "wait" : "ok")">@(items.Any() ? Fmt.Num(items.Count) + " مورد" : "✓ همه‌چیز کامل است")</span></h3>
+        <h3 class="sec">@title <span class="badge @(items.Any() ? "wait" : "ok")">@(items.Any() ? Fmt.Num(items.Count) + " مورد" : "همه‌چیز کامل است")</span></h3>
         @foreach (var i in items) { <a class="btn sm" style="margin:3px" asp-controller="@ctl" asp-action="Edit" asp-route-id="@i.Id">@i.Name</a> }
     </div>
 }

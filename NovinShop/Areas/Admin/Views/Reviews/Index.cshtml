@@ -12,7 +12,7 @@
 }
 <div class="bar">
     <div>
-        <h2>💬 دیدگاه‌ها و امتیازات کاربران (@Fmt.Num(totalFiltered) مورد)</h2>
+        <h2>دیدگاه‌ها و امتیازات کاربران (@Fmt.Num(totalFiltered) مورد)</h2>
         <small style="color:var(--muted)">بررسی، تأیید، صفحه‌بندی و ثبت پاسخ رسمی پشتیبانی به نظرات مشتریان</small>
     </div>
     <div class="rev-tabs-bar">
@@ -58,7 +58,7 @@ else
                                 <b>@r.AuthorName</b>
                                 @if (r.IsBuyer) { <span class="badge ok">خریدار محصول</span> }
                                 <span class="badge @(r.IsApproved ? "ok" : "wait")">@(r.IsApproved ? "منتشرشده" : "در انتظار تأیید")</span>
-                                <span class="rev-star-badge">@Fmt.Num(r.Rating) ★</span>
+                                <span class="rev-star-badge">@Fmt.Num(r.Rating) از ۵</span>
                             </div>
                             <div style="font-size:12px;color:var(--muted);margin-top:3px">
                                 @if (r.Product is not null)
@@ -77,7 +77,7 @@ else
                             <input type="hidden" name="q" value="@q" />
                             <input type="hidden" name="page" value="@curPage" />
                             <button class="btn sm @(r.IsApproved ? "" : "pri")" type="submit">
-                                @(r.IsApproved ? "لغو انتشار" : "✓ تأیید و انتشار")
+                                @(r.IsApproved ? "لغو انتشار" : "تأیید و انتشار")
                             </button>
                         </form>
                         <form asp-action="Delete" method="post" onsubmit="return confirm('این دیدگاه حذف شود؟')">
@@ -111,7 +111,7 @@ else
                     <input type="hidden" name="q" value="@q" />
                     <input type="hidden" name="page" value="@curPage" />
                     <input type="text" name="adminReply" value="@r.AdminReply" placeholder="ثبت یا ویرایش پاسخ رسمی پشتیبانی به این دیدگاه..." />
-                    <button class="btn sm pri" type="submit">💬 ثبت پاسخ</button>
+                    <button class="btn sm pri" type="submit">ثبت پاسخ</button>
                 </form>
             </div>
         }
